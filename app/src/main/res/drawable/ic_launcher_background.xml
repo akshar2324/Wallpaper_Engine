@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor" xmlns:aapt="http://schemas.android.com/aapt">
+            <gradient
+                android:angle="135"
+                android:endColor="#18002E"
+                android:startColor="#05000A"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+    <!-- Background subtle cyberpunk grid lines -->
+    <path
+        android:pathData="M0,27H108 M0,54H108 M0,81H108 M27,0V108 M54,0V108 M81,0V108"
+        android:strokeWidth="0.5"
+        android:strokeColor="#252A0052" />
+</vector>

@@ -1,0 +1,6 @@
+{
+  "name": "Wallpaper Engine",
+  "description": "Premium Anime-Inspired Android Wallpaper Manager and Automation Engine",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
