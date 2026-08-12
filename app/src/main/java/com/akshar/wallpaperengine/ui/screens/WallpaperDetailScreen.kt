@@ -1,36 +1,30 @@
 package com.akshar.wallpaperengine.ui.screens
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.akshar.wallpaperengine.theme.LocalThemeColors
 import com.akshar.wallpaperengine.ui.components.ProceduralWallpaperPreview
 import com.akshar.wallpaperengine.ui.viewmodel.WallpaperDetailViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun WallpaperDetailScreen(
     viewModel: WallpaperDetailViewModel,
@@ -39,12 +33,14 @@ fun WallpaperDetailScreen(
 ) {
     val theme = LocalThemeColors.current
     val uiState by viewModel.uiState.collectAsState()
-    val wallpaper = uiState.wallpaper
+    val scrollState = rememberScrollState()
 
     var showApplyModal by remember { mutableStateOf(false) }
-    var showTagDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showTagDialog by remember { mutableStateOf(false) }
     var newTagName by remember { mutableStateOf("") }
+
+    val wallpaper = uiState.wallpaper
 
     if (wallpaper == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -53,183 +49,149 @@ fun WallpaperDetailScreen(
         return
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(wallpaper.title, maxLines = 1) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { viewModel.toggleFavorite() }) {
-                        Icon(
-                            imageVector = if (wallpaper.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = "Favorite",
-                            tint = if (wallpaper.isFavorite) Color(0xFFEF4444) else theme.textPrimary
-                        )
-                    }
-                    IconButton(onClick = { showDeleteConfirm = true }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = Color(0xFFEF4444))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.background)
-            )
-        },
-        bottomBar = {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), androidx.compose.ui.graphics.RectangleShape),
-                color = theme.surface,
-                tonalElevation = 0.dp
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Button(
-                        onClick = { showApplyModal = true },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(52.dp)
-                            .testTag("set_wallpaper_action_button"),
-                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Filled.Wallpaper, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("APPLY WALLPAPER", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp))
-                    }
-                }
-            }
-        },
-        containerColor = theme.background
-    ) { padding ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(theme.background)
+    ) {
+        // Immersive Hero Area
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f) // Takes up majority of screen
                 .padding(16.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
         ) {
-            // Main Hero Image Canvas
-            Card(
+            if (wallpaper.isSample || wallpaper.uri.startsWith("sample_")) {
+                ProceduralWallpaperPreview(
+                    sampleKey = wallpaper.uri,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(wallpaper.uri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = wallpaper.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            // Top action bar overlay
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(420.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp)),
-                shape = RoundedCornerShape(16.dp)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    if (wallpaper.isSample || wallpaper.uri.startsWith("sample_")) {
-                        ProceduralWallpaperPreview(
-                            sampleKey = wallpaper.uri,
-                            modifier = Modifier.fillMaxSize()
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                ) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(
+                        onClick = { viewModel.toggleFavorite() },
+                        modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                    ) {
+                        Icon(
+                            imageVector = if (wallpaper.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = if (wallpaper.isFavorite) theme.primary else Color.White
                         )
-                    } else {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(wallpaper.uri)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = wallpaper.title,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                    }
+                    IconButton(
+                        onClick = { showDeleteConfirm = true },
+                        modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                    ) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = Color.White)
                     }
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Metadata Info Cards
+        // Details Section Bottom Panel
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 24.dp)
+        ) {
             Text(
-                text = "Properties & Metrics",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
+                text = wallpaper.title,
+                style = MaterialTheme.typography.headlineMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                MetaPill(title = "Resolution", value = "${wallpaper.width}×${wallpaper.height}", modifier = Modifier.weight(1f))
-                MetaPill(title = "Scale Mode", value = wallpaper.scaleType, modifier = Modifier.weight(1f))
-                MetaPill(title = "Format", value = wallpaper.mimeType.substringAfter('/'), modifier = Modifier.weight(1f))
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Tag Cloud Section
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    text = "Tags",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
+                    text = "${wallpaper.width} × ${wallpaper.height}",
+                    style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary)
                 )
-                IconButton(onClick = { showTagDialog = true }) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add Tag", tint = theme.primary)
-                }
+                Text(
+                    text = wallpaper.mimeType.substringAfter('/').uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary)
+                )
+                Text(
+                    text = String.format("%.1f MB", wallpaper.fileSize / (1024f * 1024f)),
+                    style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary)
+                )
             }
 
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                uiState.tags.forEach { tag ->
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Tags
+            if (uiState.tags.isNotEmpty()) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    uiState.tags.forEach { tag ->
+                        InputChip(
+                            selected = false,
+                            onClick = { viewModel.removeTag(tag) },
+                            label = { Text("#${tag.name}", style = MaterialTheme.typography.labelMedium) },
+                            trailingIcon = { Icon(Icons.Filled.Close, contentDescription = "Remove", modifier = Modifier.size(14.dp)) },
+                            colors = InputChipDefaults.inputChipColors(
+                                containerColor = theme.surface,
+                                labelColor = theme.textSecondary
+                            ),
+                            border = InputChipDefaults.inputChipBorder(borderColor = theme.borderGlow.copy(alpha = 0.2f))
+                        )
+                    }
                     InputChip(
                         selected = false,
-                        onClick = { viewModel.removeTag(tag) },
-                        label = { Text("#${tag.name}") },
-                        trailingIcon = { Icon(Icons.Filled.Close, contentDescription = "Remove", modifier = Modifier.size(16.dp)) }
+                        onClick = { showTagDialog = true },
+                        label = { Text("ADD TAG", style = MaterialTheme.typography.labelMedium.copy(color = theme.primary)) },
+                        colors = InputChipDefaults.inputChipColors(containerColor = Color.Transparent),
+                        border = InputChipDefaults.inputChipBorder(borderColor = Color.Transparent)
                     )
                 }
+                Spacer(modifier = Modifier.height(24.dp))
+            } else {
+                TextButton(
+                    onClick = { showTagDialog = true },
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text("+ ADD TAG", style = MaterialTheme.typography.labelMedium.copy(color = theme.primary))
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Collections Section
-            Text(
-                text = "Assign to Collection",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                uiState.collections.forEach { col ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp)),
-                        colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(col.name, style = MaterialTheme.typography.bodyLarge.copy(color = theme.textPrimary))
-                            Button(
-                                onClick = { viewModel.addToCollection(col.id) },
-                                colors = ButtonDefaults.buttonColors(containerColor = theme.primaryContainer, contentColor = theme.onPrimaryContainer),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
-                            ) {
-                                Text("Add")
-                            }
-                        }
-                    }
-                }
+            // Main Action Button
+            Button(
+                onClick = { showApplyModal = true },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("APPLY WALLPAPER", style = MaterialTheme.typography.labelLarge.copy(color = theme.onPrimary, fontWeight = FontWeight.Bold, letterSpacing = 1.dp))
             }
         }
     }
@@ -238,8 +200,8 @@ fun WallpaperDetailScreen(
     if (showApplyModal) {
         AlertDialog(
             onDismissRequest = { showApplyModal = false },
-            title = { Text("Apply Wallpaper", color = theme.textPrimary) },
-            text = { Text("Select target destination for this wallpaper:", color = theme.textSecondary) },
+            title = { Text("Apply Wallpaper", style = MaterialTheme.typography.titleLarge.copy(color = theme.textPrimary)) },
+            text = { Text("Select target destination:", style = MaterialTheme.typography.bodyMedium.copy(color = theme.textSecondary)) },
             confirmButton = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -251,9 +213,10 @@ fun WallpaperDetailScreen(
                             showApplyModal = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary)
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.surfaceVariant),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Home Screen")
+                        Text("HOME SCREEN", color = theme.textPrimary)
                     }
                     Button(
                         onClick = {
@@ -261,9 +224,10 @@ fun WallpaperDetailScreen(
                             showApplyModal = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = theme.primaryContainer, contentColor = theme.onPrimaryContainer)
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.surfaceVariant),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Lock Screen")
+                        Text("LOCK SCREEN", color = theme.textPrimary)
                     }
                     Button(
                         onClick = {
@@ -271,18 +235,20 @@ fun WallpaperDetailScreen(
                             showApplyModal = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = theme.secondary, contentColor = Color.White)
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Both Home & Lock Screen")
+                        Text("HOME & LOCK SCREEN", color = theme.onPrimary)
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showApplyModal = false }) {
-                    Text("Cancel", color = theme.textSecondary)
+                    Text("CANCEL", color = theme.textSecondary)
                 }
             },
-            containerColor = theme.surface
+            containerColor = theme.surface,
+            shape = RoundedCornerShape(12.dp)
         )
     }
 
@@ -295,25 +261,36 @@ fun WallpaperDetailScreen(
                 OutlinedTextField(
                     value = newTagName,
                     onValueChange = { newTagName = it },
-                    placeholder = { Text("Tag name (e.g. cyberpunk)") },
-                    singleLine = true
+                    placeholder = { Text("e.g. cyberpunk") },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = theme.primary,
+                        unfocusedBorderColor = theme.borderGlow.copy(alpha = 0.3f),
+                        focusedTextColor = theme.textPrimary,
+                        unfocusedTextColor = theme.textPrimary
+                    )
                 )
             },
             confirmButton = {
-                Button(onClick = {
-                    viewModel.addTag(newTagName)
-                    newTagName = ""
-                    showTagDialog = false
-                }) {
-                    Text("Add")
+                Button(
+                    onClick = {
+                        viewModel.addTag(newTagName)
+                        newTagName = ""
+                        showTagDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("ADD")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showTagDialog = false }) {
-                    Text("Cancel")
+                    Text("CANCEL", color = theme.textSecondary)
                 }
             },
-            containerColor = theme.surface
+            containerColor = theme.surface,
+            shape = RoundedCornerShape(12.dp)
         )
     }
 
@@ -322,7 +299,7 @@ fun WallpaperDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("Delete Wallpaper", color = theme.textPrimary) },
-            text = { Text("Are you sure you want to remove this wallpaper from your library?", color = theme.textSecondary) },
+            text = { Text("Are you sure you want to remove this wallpaper?", color = theme.textSecondary) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -331,36 +308,19 @@ fun WallpaperDetailScreen(
                             onBack()
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Delete")
+                    Text("DELETE")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancel")
+                    Text("CANCEL", color = theme.textSecondary)
                 }
             },
-            containerColor = theme.surface
+            containerColor = theme.surface,
+            shape = RoundedCornerShape(12.dp)
         )
-    }
-}
-
-@Composable
-private fun MetaPill(title: String, value: String, modifier: Modifier = Modifier) {
-    val theme = LocalThemeColors.current
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(title, style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary))
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(value, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary))
-        }
     }
 }

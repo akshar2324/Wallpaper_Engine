@@ -1,63 +1,132 @@
 package com.akshar.wallpaperengine.domain.strategy
 
-import com.akshar.wallpaperengine.data.local.entity.WallpaperEntity
+import androidx.sqlite.db.SimpleSQLiteQuery
+import com.akshar.wallpaperengine.data.local.dao.WallpaperDao
 
 interface WallpaperSelectionStrategy {
-    fun selectWallpaper(wallpaperIds: List<Long>, lastSelectedId: Long?): Long?
+    suspend fun selectWallpaper(
+        wallpaperDao: WallpaperDao,
+        sourceType: String,
+        collectionId: Long?,
+        specificWallpaperId: Long?,
+        lastSelectedId: Long?
+    ): Long?
 }
 
-class RandomSelectionStrategy : WallpaperSelectionStrategy {
-    override fun selectWallpaper(wallpaperIds: List<Long>, lastSelectedId: Long?): Long? {
-        if (wallpaperIds.isEmpty()) return null
-        if (wallpaperIds.size == 1) return wallpaperIds.first()
-        val candidates = wallpaperIds.filter { it != lastSelectedId }
-        return (if (candidates.isNotEmpty()) candidates else wallpaperIds).random()
-    }
-}
+abstract class BaseSqlSelectionStrategy : WallpaperSelectionStrategy {
+    protected fun buildBaseQuery(
+        sourceType: String,
+        collectionId: Long?,
+        specificWallpaperId: Long?,
+        additionalWhere: String = "",
+        orderBy: String = ""
+    ): SimpleSQLiteQuery {
+        var query = "SELECT w.id FROM wallpapers w"
 
-class SequentialSelectionStrategy : WallpaperSelectionStrategy {
-    override fun selectWallpaper(wallpaperIds: List<Long>, lastSelectedId: Long?): Long? {
-        if (wallpaperIds.isEmpty()) return null
-        val sortedIds = wallpaperIds.sorted() // Important for stable sequential iteration
-        if (lastSelectedId == null) return sortedIds.first()
-        val index = sortedIds.indexOf(lastSelectedId)
-        return if (index != -1 && index + 1 < sortedIds.size) {
-            sortedIds[index + 1]
-        } else {
-            sortedIds.first()
+        if (sourceType.uppercase() == "COLLECTION" && collectionId != null) {
+            query += " INNER JOIN wallpaper_collection_cross_ref c ON w.id = c.wallpaperId AND c.collectionId = $collectionId"
         }
+
+        val conditions = mutableListOf<String>()
+
+        when (sourceType.uppercase()) {
+            "FAVORITES" -> conditions.add("w.isFavorite = 1")
+            "SPECIFIC" -> {
+                if (specificWallpaperId != null) {
+                    conditions.add("w.id = $specificWallpaperId")
+                }
+            }
+        }
+
+        if (additionalWhere.isNotBlank()) {
+            conditions.add(additionalWhere)
+        }
+
+        if (conditions.isNotEmpty()) {
+            query += " WHERE " + conditions.joinToString(" AND ")
+        }
+
+        if (orderBy.isNotBlank()) {
+            query += " ORDER BY $orderBy LIMIT 1"
+        } else {
+            query += " LIMIT 1"
+        }
+
+        return SimpleSQLiteQuery(query)
     }
 }
 
-// Favorites/LRU Strategies are complex because LRU needs lastUsed time. 
-// We will change them to random or sequential if we just get IDs. 
-// For LRU, we can't do it just with IDs. Let's fallback to Random if not Sequential.
-class FavoritesSelectionStrategy : WallpaperSelectionStrategy {
-    override fun selectWallpaper(wallpaperIds: List<Long>, lastSelectedId: Long?): Long? {
-        // It relies on the input list already being favorites.
-        if (wallpaperIds.isEmpty()) return null
-        val candidates = wallpaperIds.filter { it != lastSelectedId }
-        return (if (candidates.isNotEmpty()) candidates else wallpaperIds).random()
+class RandomSelectionStrategy : BaseSqlSelectionStrategy() {
+    override suspend fun selectWallpaper(
+        wallpaperDao: WallpaperDao,
+        sourceType: String,
+        collectionId: Long?,
+        specificWallpaperId: Long?,
+        lastSelectedId: Long?
+    ): Long? {
+        val excludeCondition = if (lastSelectedId != null) "w.id != $lastSelectedId" else ""
+        var query = buildBaseQuery(sourceType, collectionId, specificWallpaperId, excludeCondition, "RANDOM()")
+        var id = wallpaperDao.getSingleWallpaperId(query)
+
+        // Fallback if exclusion removed the only item
+        if (id == null && lastSelectedId != null) {
+            query = buildBaseQuery(sourceType, collectionId, specificWallpaperId, "", "RANDOM()")
+            id = wallpaperDao.getSingleWallpaperId(query)
+        }
+        return id
     }
 }
 
-class LeastRecentlyUsedSelectionStrategy : WallpaperSelectionStrategy {
-    override fun selectWallpaper(wallpaperIds: List<Long>, lastSelectedId: Long?): Long? {
-        // We cannot compute LRU from IDs alone accurately here, so fallback to Random for now.
-        // A true LRU strategy should be a direct DAO query (ORDER BY lastUsed ASC LIMIT 1)
-        if (wallpaperIds.isEmpty()) return null
-        val candidates = wallpaperIds.filter { it != lastSelectedId }
-        return (if (candidates.isNotEmpty()) candidates else wallpaperIds).random()
+class SequentialSelectionStrategy : BaseSqlSelectionStrategy() {
+    override suspend fun selectWallpaper(
+        wallpaperDao: WallpaperDao,
+        sourceType: String,
+        collectionId: Long?,
+        specificWallpaperId: Long?,
+        lastSelectedId: Long?
+    ): Long? {
+        // Try getting the next item with id > lastSelectedId
+        if (lastSelectedId != null) {
+            val query = buildBaseQuery(sourceType, collectionId, specificWallpaperId, "w.id > $lastSelectedId", "w.id ASC")
+            val nextId = wallpaperDao.getSingleWallpaperId(query)
+            if (nextId != null) return nextId
+        }
+
+        // Wrap around to the first item (smallest id)
+        val wrapQuery = buildBaseQuery(sourceType, collectionId, specificWallpaperId, "", "w.id ASC")
+        return wallpaperDao.getSingleWallpaperId(wrapQuery)
     }
 }
+
+class LeastRecentlyUsedSelectionStrategy : BaseSqlSelectionStrategy() {
+    override suspend fun selectWallpaper(
+        wallpaperDao: WallpaperDao,
+        sourceType: String,
+        collectionId: Long?,
+        specificWallpaperId: Long?,
+        lastSelectedId: Long?
+    ): Long? {
+        val excludeCondition = if (lastSelectedId != null) "w.id != $lastSelectedId" else ""
+        var query = buildBaseQuery(sourceType, collectionId, specificWallpaperId, excludeCondition, "IFNULL(w.lastUsed, 0) ASC")
+        var id = wallpaperDao.getSingleWallpaperId(query)
+
+        // Fallback
+        if (id == null && lastSelectedId != null) {
+            query = buildBaseQuery(sourceType, collectionId, specificWallpaperId, "", "IFNULL(w.lastUsed, 0) ASC")
+            id = wallpaperDao.getSingleWallpaperId(query)
+        }
+        return id
+    }
+}
+
+class FavoritesSelectionStrategy : RandomSelectionStrategy() // If they just wanted 'Favorites', we'll default to Random over the Favorites pool. (Source pool determines the base query)
 
 object SelectionStrategyFactory {
     fun getStrategy(modeName: String): WallpaperSelectionStrategy {
         return when (modeName.uppercase()) {
             "SEQUENTIAL" -> SequentialSelectionStrategy()
-            "FAVORITES" -> FavoritesSelectionStrategy()
             "LRU" -> LeastRecentlyUsedSelectionStrategy()
-            else -> RandomSelectionStrategy()
+            else -> RandomSelectionStrategy() // Default to Random
         }
     }
 }

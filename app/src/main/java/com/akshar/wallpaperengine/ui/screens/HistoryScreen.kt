@@ -2,7 +2,6 @@ package com.akshar.wallpaperengine.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -29,6 +28,7 @@ import java.util.Locale
 @Composable
 fun HistoryScreen(
     viewModel: HistoryViewModel,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val theme = LocalThemeColors.current
@@ -38,22 +38,22 @@ fun HistoryScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
     ) {
         // Top Header
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = theme.textPrimary)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Application Timeline",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold, color = theme.textPrimary)
-                )
-                Text(
-                    text = "Applied wallpapers & rotation history log",
-                    style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary)
+                    text = "HISTORY",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp)
                 )
             }
 
@@ -63,8 +63,6 @@ fun HistoryScreen(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
 
         if (uiState.historyRecords.isNotEmpty()) {
             LazyColumn(
@@ -80,75 +78,65 @@ fun HistoryScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier
                                 .width(32.dp)
-                                .padding(top = 16.dp)
+                                .padding(top = 24.dp)
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(12.dp)
+                                    .size(8.dp)
                                     .clip(CircleShape)
-                                    .background(if (record.source == "SCHEDULE") theme.primary else theme.secondary)
+                                    .background(if (record.source == "SCHEDULE") theme.primary else theme.textSecondary)
                             )
                             if (index < uiState.historyRecords.size - 1) {
                                 Box(
                                     modifier = Modifier
-                                        .width(2.dp)
+                                        .width(1.dp)
                                         .height(72.dp)
-                                        .background(Color.White.copy(alpha = 0.08f))
+                                        .background(theme.borderGlow.copy(alpha = 0.2f))
                                 )
                             }
                         }
 
                         Spacer(modifier = Modifier.width(12.dp))
 
-                        // Timeline Card Content
-                        Card(
+                        // Timeline Content
+                        Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(bottom = 12.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(14.dp)),
-                            colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant),
-                            shape = RoundedCornerShape(14.dp)
+                                .padding(vertical = 12.dp)
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(14.dp),
+                                modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = record.wallpaperTitle,
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        Surface(
-                                            color = theme.surface,
-                                            shape = RoundedCornerShape(4.dp)
-                                        ) {
-                                            Text(
-                                                text = record.source,
-                                                style = MaterialTheme.typography.labelSmall.copy(color = theme.primary, fontSize = 9.sp, fontWeight = FontWeight.Bold),
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                            )
-                                        }
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                         Text(
-                                            text = "${dateFormat.format(Date(record.appliedAt))} • Target: ${record.targetScreen}",
-                                            style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary, fontSize = 11.sp)
+                                            text = record.source.uppercase(),
+                                            style = MaterialTheme.typography.labelSmall.copy(color = if (record.source == "SCHEDULE") theme.primary else theme.textSecondary, letterSpacing = 1.dp)
+                                        )
+                                        Text("•", color = theme.textSecondary)
+                                        Text(
+                                            text = dateFormat.format(Date(record.appliedAt)),
+                                            style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary)
                                         )
                                     }
                                 }
 
                                 Row {
                                     IconButton(onClick = { viewModel.reapplyHistoryWallpaper(record) }) {
-                                        Icon(Icons.Filled.Replay, contentDescription = "Reapply", tint = theme.primary)
-                                    }
-                                    IconButton(onClick = { viewModel.deleteHistoryRecord(record) }) {
-                                        Icon(Icons.Filled.Close, contentDescription = "Delete", tint = theme.textSecondary)
+                                        Icon(Icons.Filled.Replay, contentDescription = "Reapply", tint = theme.textPrimary)
                                     }
                                 }
+                            }
+
+                            if (index < uiState.historyRecords.size - 1) {
+                                Divider(color = theme.borderGlow.copy(alpha = 0.1f), modifier = Modifier.padding(top = 12.dp))
                             }
                         }
                     }
@@ -156,8 +144,8 @@ fun HistoryScreen(
             }
         } else {
             EmptyStateView(
-                title = "No History Records",
-                description = "All applied wallpapers and scheduled rotation events will appear in this timeline.",
+                title = "No History",
+                description = "All applied wallpapers and rotation events will appear here.",
                 icon = Icons.Filled.History,
                 modifier = Modifier.fillMaxSize()
             )

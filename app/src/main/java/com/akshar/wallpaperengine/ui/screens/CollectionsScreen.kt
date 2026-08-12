@@ -17,10 +17,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.akshar.wallpaperengine.data.local.entity.CollectionEntity
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.akshar.wallpaperengine.theme.LocalThemeColors
 import com.akshar.wallpaperengine.ui.components.EmptyStateView
 import com.akshar.wallpaperengine.ui.components.WallpaperCard
@@ -49,13 +53,13 @@ fun CollectionsScreen(
     ) {
         // Top Header
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (selected != null) selected.name else "Collections",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold, color = theme.textPrimary)
+                text = if (selected != null) selected.name.uppercase() else "COLLECTIONS",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp)
             )
 
             if (selected != null) {
@@ -63,84 +67,98 @@ fun CollectionsScreen(
                     Icon(Icons.Filled.Close, contentDescription = "Close Collection", tint = theme.textSecondary)
                 }
             } else {
-                FloatingActionButton(
-                    onClick = { showCreateDialog = true },
-                    containerColor = theme.primary,
-                    contentColor = theme.onPrimary,
-                    modifier = Modifier.size(48.dp)
+                IconButton(
+                    onClick = { showCreateDialog = true }
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = "New Collection")
+                    Icon(Icons.Filled.Add, contentDescription = "New Collection", tint = theme.primary)
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         if (selected == null) {
             // List of Collections
             if (uiState.collections.isNotEmpty()) {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(uiState.collections, key = { it.id }) { col ->
-                        Card(
+                        val shape = RoundedCornerShape(12.dp)
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(16.dp))
-                                .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-                                .clickable { viewModel.selectCollection(col) },
-                            colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant),
-                            shape = RoundedCornerShape(16.dp)
+                                .height(160.dp)
+                                .clip(shape)
+                                .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), shape)
+                                .clickable { viewModel.selectCollection(col) }
                         ) {
+                            // Immersive Background Cover
+                            if (col.coverUri != null) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(col.coverUri)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Box(modifier = Modifier.fillMaxSize().background(theme.surfaceVariant)) {
+                                    Icon(
+                                        Icons.Filled.FolderSpecial,
+                                        contentDescription = null,
+                                        tint = theme.textSecondary.copy(alpha = 0.2f),
+                                        modifier = Modifier.size(64.dp).align(Alignment.Center)
+                                    )
+                                }
+                            }
+
+                            // Dark Gradient
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.9f))
+                                        )
+                                    )
+                            )
+
+                            // Content
                             Row(
                                 modifier = Modifier
-                                    .fillMaxWidth()
+                                    .fillMaxSize()
                                     .padding(16.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.Bottom
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(52.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(theme.surface)
-                                            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.FolderSpecial,
-                                            contentDescription = null,
-                                            tint = theme.primary,
-                                            modifier = Modifier.size(26.dp)
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    Column {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = col.name,
+                                        style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold)
+                                    )
+                                    if (col.description.isNotBlank()) {
+                                        Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            col.name,
-                                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
-                                        )
-                                        if (col.description.isNotBlank()) {
-                                            Text(
-                                                col.description,
-                                                style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary)
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(
-                                            "${col.wallpaperCount} wallpapers",
-                                            style = MaterialTheme.typography.labelSmall.copy(color = theme.primary, fontWeight = FontWeight.Bold)
+                                            text = col.description,
+                                            style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary)
                                         )
                                     }
                                 }
 
-                                IconButton(onClick = { viewModel.deleteCollection(col) }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = theme.textSecondary)
+                                Column(horizontalAlignment = Alignment.End) {
+                                    IconButton(
+                                        onClick = { viewModel.deleteCollection(col) },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(20.dp))
+                                    }
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = "${col.wallpaperCount} WALLPAPERS",
+                                        style = MaterialTheme.typography.labelSmall.copy(color = theme.primary, fontWeight = FontWeight.Bold, letterSpacing = 1.dp)
+                                    )
                                 }
                             }
                         }
@@ -148,10 +166,10 @@ fun CollectionsScreen(
                 }
             } else {
                 EmptyStateView(
-                    title = "No Collections Yet",
-                    description = "Group wallpapers into curated collections like Cyberpunk Cities or Dark AMOLED.",
+                    title = "No Collections",
+                    description = "Group wallpapers into themed collections like Cyberpunk or Dark AMOLED.",
                     icon = Icons.Filled.FolderSpecial,
-                    buttonText = "Create Collection",
+                    buttonText = "CREATE COLLECTION",
                     onButtonClick = { showCreateDialog = true },
                     modifier = Modifier.fillMaxSize()
                 )
@@ -161,8 +179,8 @@ fun CollectionsScreen(
             if (uiState.collectionWallpapers.isNotEmpty()) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(uiState.collectionWallpapers, key = { it.id }) { item ->
@@ -195,12 +213,24 @@ fun CollectionsScreen(
                         value = newName,
                         onValueChange = { newName = it },
                         placeholder = { Text("Collection Name") },
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = theme.primary,
+                            unfocusedBorderColor = theme.borderGlow.copy(alpha = 0.3f),
+                            focusedTextColor = theme.textPrimary,
+                            unfocusedTextColor = theme.textPrimary
+                        )
                     )
                     OutlinedTextField(
                         value = newDesc,
                         onValueChange = { newDesc = it },
-                        placeholder = { Text("Description (Optional)") }
+                        placeholder = { Text("Description (Optional)") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = theme.primary,
+                            unfocusedBorderColor = theme.borderGlow.copy(alpha = 0.3f),
+                            focusedTextColor = theme.textPrimary,
+                            unfocusedTextColor = theme.textPrimary
+                        )
                     )
                 }
             },
@@ -212,17 +242,19 @@ fun CollectionsScreen(
                         newDesc = ""
                         showCreateDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = theme.primary)
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Create")
+                    Text("CREATE")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showCreateDialog = false }) {
-                    Text("Cancel")
+                    Text("CANCEL", color = theme.textSecondary)
                 }
             },
-            containerColor = theme.surface
+            containerColor = theme.surface,
+            shape = RoundedCornerShape(12.dp)
         )
     }
 }

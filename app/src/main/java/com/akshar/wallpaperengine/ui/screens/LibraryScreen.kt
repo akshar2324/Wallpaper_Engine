@@ -3,7 +3,7 @@ package com.akshar.wallpaperengine.ui.screens
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,97 +40,73 @@ fun LibraryScreen(
     modifier: Modifier = Modifier
 ) {
     val theme = LocalThemeColors.current
-    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     var showFilterSheet by remember { mutableStateOf(false) }
     var showAddToCollectionDialog by remember { mutableStateOf(false) }
 
-    // System SAF Photo Picker launcher
     val pickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetMultipleContents()
-    ) { uris: List<Uri> ->
-        if (uris.isNotEmpty()) {
-            viewModel.importImagesFromUris(context, uris)
+        contract = ActivityResultContracts.GetMultipleContents(),
+        onResult = { uris: List<Uri> ->
+            if (uris.isNotEmpty()) {
+                viewModel.importImagesFromUris(context, uris)
+            }
         }
-    }
+    )
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        // Search & Filter Header
+        // Header
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            OutlinedTextField(
-                value = uiState.filterOptions.searchQuery,
-                onValueChange = { viewModel.updateSearchQuery(it) },
-                placeholder = { Text("Search wallpapers, tags...", color = theme.textSecondary) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = theme.primary) },
-                trailingIcon = {
-                    if (uiState.filterOptions.searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Clear", tint = theme.textSecondary)
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag("search_text_field"),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = theme.primary,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.08f),
-                    focusedContainerColor = theme.surfaceVariant,
-                    unfocusedContainerColor = theme.surfaceVariant,
-                    focusedTextColor = theme.textPrimary,
-                    unfocusedTextColor = theme.textPrimary
-                ),
-                singleLine = true
+            Text(
+                text = "LIBRARY",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp)
             )
 
-            IconButton(
-                onClick = { showFilterSheet = true },
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(theme.surfaceVariant)
-            ) {
-                Icon(Icons.Outlined.FilterList, contentDescription = "Filter", tint = theme.primary)
-            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                IconButton(onClick = { showFilterSheet = true }) {
+                    Icon(Icons.Filled.FilterList, contentDescription = "Filter", tint = theme.textSecondary)
+                }
 
-            IconButton(
-                onClick = { pickerLauncher.launch("image/*") },
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(theme.primary)
-                    .testTag("import_wallpaper_button")
-            ) {
-                Icon(Icons.Filled.AddPhotoAlternate, contentDescription = "Import", tint = theme.onPrimary)
+                IconButton(
+                    onClick = { pickerLauncher.launch("image/*") },
+                    modifier = Modifier.testTag("import_wallpaper_button")
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Import", tint = theme.primary)
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Quick Tags Filter Bar
+        // Tags Bar
         if (uiState.tags.isNotEmpty()) {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
             ) {
                 item {
                     FilterChip(
                         selected = uiState.filterOptions.tagId == null,
                         onClick = { viewModel.selectTag(null) },
-                        label = { Text("All Tags") },
+                        label = { Text("ALL") },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = theme.primary,
-                            selectedLabelColor = theme.onPrimary
+                            selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                            selectedLabelColor = theme.primary,
+                            containerColor = Color.Transparent,
+                            labelColor = theme.textSecondary
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                            selectedBorderColor = theme.primary
                         )
                     )
                 }
@@ -142,59 +117,59 @@ fun LibraryScreen(
                             if (uiState.filterOptions.tagId == tag.id) viewModel.selectTag(null)
                             else viewModel.selectTag(tag.id)
                         },
-                        label = { Text("#${tag.name}") },
+                        label = { Text(tag.name.uppercase()) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = theme.primary,
-                            selectedLabelColor = theme.onPrimary
+                            selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                            selectedLabelColor = theme.primary,
+                            containerColor = Color.Transparent,
+                            labelColor = theme.textSecondary
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                            selectedBorderColor = theme.primary
                         )
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
         }
 
         // Batch Action Toolbar
         AnimatedVisibility(visible = uiState.isMultiSelectMode) {
-            Card(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant),
-                shape = RoundedCornerShape(12.dp)
+                    .padding(bottom = 12.dp)
+                    .background(theme.surfaceVariant, RoundedCornerShape(8.dp))
+                    .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "${uiState.selectedWallpaperIds.size} Selected",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
-                    )
+                Text(
+                    text = "${uiState.selectedWallpaperIds.size} SELECTED",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
+                )
 
-                    Row {
-                        IconButton(onClick = { showAddToCollectionDialog = true }) {
-                            Icon(Icons.Filled.FolderSpecial, contentDescription = "Add to Collection", tint = theme.primary)
-                        }
-                        IconButton(onClick = { viewModel.deleteSelectedWallpapers() }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Delete Selected", tint = Color(0xFFEF4444))
-                        }
-                        IconButton(onClick = { viewModel.clearSelection() }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Cancel", tint = theme.textSecondary)
-                        }
+                Row {
+                    IconButton(onClick = { showAddToCollectionDialog = true }) {
+                        Icon(Icons.Filled.FolderSpecial, contentDescription = "Add to Collection", tint = theme.textPrimary)
+                    }
+                    IconButton(onClick = { viewModel.deleteSelectedWallpapers() }) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Delete Selected", tint = Color(0xFFEF4444))
+                    }
+                    IconButton(onClick = { viewModel.clearSelection() }) {
+                        Icon(Icons.Filled.Close, contentDescription = "Cancel", tint = theme.textSecondary)
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
         // Grid Content
         if (uiState.wallpapers.isNotEmpty()) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(uiState.gridDensity),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(uiState.wallpapers, key = { it.id }) { wallpaper ->
@@ -217,10 +192,10 @@ fun LibraryScreen(
             }
         } else {
             EmptyStateView(
-                title = "No Wallpapers Found",
-                description = "Build your personal library by importing high quality anime wallpapers.",
-                icon = Icons.Filled.Wallpaper,
-                buttonText = "Import Wallpapers",
+                title = "Library is Empty",
+                description = "Import wallpapers to build your collection.",
+                icon = Icons.Filled.PhotoLibrary,
+                buttonText = "IMPORT IMAGES",
                 onButtonClick = { pickerLauncher.launch("image/*") },
                 modifier = Modifier.fillMaxSize()
             )
@@ -236,31 +211,35 @@ fun LibraryScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
+                    .padding(24.dp)
             ) {
                 Text(
-                    text = "Filter & Sort Library",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
+                    text = "FILTER & SORT",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Text("Sorting Order", style = MaterialTheme.typography.labelLarge.copy(color = theme.textSecondary))
+                Text("SORT BY", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     SortOrder.values().take(3).forEach { order ->
                         FilterChip(
                             selected = uiState.filterOptions.sortOrder == order,
                             onClick = { viewModel.updateSortOrder(order) },
-                            label = { Text(order.name.replace('_', ' ')) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = theme.primary)
+                            label = { Text(order.name.replace('_', ' ').uppercase()) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                                selectedLabelColor = theme.primary
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(borderColor = theme.borderGlow.copy(alpha = 0.2f))
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Text("Orientation", style = MaterialTheme.typography.labelLarge.copy(color = theme.textSecondary))
+                Text("ORIENTATION", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OrientationFilter.values().forEach { orient ->
@@ -268,33 +247,38 @@ fun LibraryScreen(
                             selected = uiState.filterOptions.orientation == orient,
                             onClick = { viewModel.updateOrientation(orient) },
                             label = { Text(orient.name) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = theme.primary)
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                                selectedLabelColor = theme.primary
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(borderColor = theme.borderGlow.copy(alpha = 0.2f))
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Favorites Only", style = MaterialTheme.typography.titleMedium.copy(color = theme.textPrimary))
+                    Text("FAVORITES ONLY", style = MaterialTheme.typography.labelMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold))
                     Switch(
                         checked = uiState.filterOptions.favoritesOnly,
                         onCheckedChange = { viewModel.toggleFavoritesOnly() }
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
                     onClick = { showFilterSheet = false },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = theme.primary)
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Apply Filters")
+                    Text("APPLY FILTERS", style = MaterialTheme.typography.labelLarge.copy(color = theme.onPrimary))
                 }
             }
         }
@@ -304,9 +288,9 @@ fun LibraryScreen(
     if (showAddToCollectionDialog) {
         AlertDialog(
             onDismissRequest = { showAddToCollectionDialog = false },
-            title = { Text("Add to Collection", color = theme.textPrimary) },
+            title = { Text("Add to Collection", style = MaterialTheme.typography.titleLarge.copy(color = theme.textPrimary)) },
             text = {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     uiState.collections.forEach { col ->
                         TextButton(
                             onClick = {
@@ -323,10 +307,11 @@ fun LibraryScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showAddToCollectionDialog = false }) {
-                    Text("Cancel", color = theme.textSecondary)
+                    Text("CANCEL", color = theme.textSecondary)
                 }
             },
-            containerColor = theme.surface
+            containerColor = theme.surface,
+            shape = RoundedCornerShape(12.dp)
         )
     }
 }

@@ -2,6 +2,7 @@ package com.akshar.wallpaperengine.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,10 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.akshar.wallpaperengine.data.local.entity.ScheduleEntity
 import com.akshar.wallpaperengine.theme.LocalThemeColors
 import com.akshar.wallpaperengine.ui.components.EmptyStateView
@@ -40,70 +39,37 @@ fun SchedulesScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Top Header
+        // Header
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Automated Rotations",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold, color = theme.textPrimary)
+                text = "AUTOMATION",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp)
             )
 
-            FloatingActionButton(
-                onClick = {
-                    selectedScheduleForEdit = ScheduleEntity(name = "Daily Rotation", timeHour = 8, timeMinute = 0)
-                    showEditDialog = true
-                },
-                containerColor = theme.primary,
-                contentColor = theme.onPrimary,
-                modifier = Modifier
-                    .size(48.dp)
-                    .testTag("add_schedule_button")
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Schedule")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Schedule Conflict Warning Banner
-        if (uiState.conflictingSchedules.isNotEmpty()) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF7F1D1D)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Filled.Warning, contentDescription = null, tint = Color.White)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Schedule Conflict Detected: Multiple active rotations run at the exact same time.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
-                    )
-                }
+            IconButton(onClick = {
+                selectedScheduleForEdit = ScheduleEntity(name = "Daily Rotation", timeHour = 8, timeMinute = 0)
+                showEditDialog = true
+            }) {
+                Icon(Icons.Filled.Add, contentDescription = "New Schedule", tint = theme.primary)
             }
         }
 
         if (uiState.schedules.isNotEmpty()) {
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(uiState.schedules, key = { it.id }) { schedule ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp)),
+                            .border(1.dp, if (schedule.isEnabled) theme.borderGlow.copy(alpha = 0.4f) else Color.Transparent, RoundedCornerShape(12.dp)),
                         colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(
@@ -111,92 +77,69 @@ fun SchedulesScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(if (schedule.isEnabled) theme.primary.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.05f))
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                                    ) {
-                                        Text(
-                                            text = String.format("%02d:%02d", schedule.timeHour, schedule.timeMinute),
-                                            style = MaterialTheme.typography.titleMedium.copy(
-                                                fontWeight = FontWeight.Bold,
-                                                color = if (schedule.isEnabled) theme.primary else theme.textSecondary
-                                            )
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.width(12.dp))
+                                Column {
                                     Text(
-                                        text = schedule.name,
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
+                                        text = String.format("%02d:%02d", schedule.timeHour, schedule.timeMinute),
+                                        style = MaterialTheme.typography.headlineMedium.copy(
+                                            fontWeight = FontWeight.Light,
+                                            color = if (schedule.isEnabled) theme.textPrimary else theme.textSecondary.copy(alpha = 0.5f)
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = schedule.name.uppercase(),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = theme.primary, letterSpacing = 1.dp)
                                     )
                                 }
 
                                 Switch(
                                     checked = schedule.isEnabled,
-                                    onCheckedChange = { viewModel.toggleSchedule(schedule) }
+                                    onCheckedChange = { viewModel.toggleSchedule(schedule) },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = theme.onPrimary,
+                                        checkedTrackColor = theme.primary,
+                                        uncheckedThumbColor = theme.textSecondary,
+                                        uncheckedTrackColor = theme.surface
+                                    )
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Surface(
-                                    color = theme.surface,
-                                    shape = RoundedCornerShape(6.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.06f))
-                                ) {
-                                    Text(
-                                        text = "POOL: ${schedule.sourceType}",
-                                        style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, fontSize = 10.sp),
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
-                                }
-
-                                Surface(
-                                    color = theme.surface,
-                                    shape = RoundedCornerShape(6.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.06f))
-                                ) {
-                                    Text(
-                                        text = "MODE: ${schedule.selectionMode}",
-                                        style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, fontSize = 10.sp),
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
-                                }
-
-                                Surface(
-                                    color = theme.surface,
-                                    shape = RoundedCornerShape(6.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.06f))
-                                ) {
-                                    Text(
-                                        text = "TARGET: ${schedule.targetScreen}",
-                                        style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, fontSize = 10.sp),
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
-                                }
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(
+                                    text = "POOL: ${schedule.sourceType}",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary)
+                                )
+                                Text(
+                                    text = "MODE: ${schedule.selectionMode}",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary)
+                                )
+                                Text(
+                                    text = "TARGET: ${schedule.targetScreen.replace("_", " ")}",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary)
+                                )
                             }
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Divider(color = theme.borderGlow.copy(alpha = 0.1f))
 
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                                 horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 TextButton(onClick = { viewModel.triggerNow(schedule) }) {
-                                    Text("Run Now", color = theme.secondary, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                                    Text("RUN NOW", color = theme.textPrimary, style = MaterialTheme.typography.labelMedium)
                                 }
                                 TextButton(onClick = {
                                     selectedScheduleForEdit = schedule
                                     showEditDialog = true
                                 }) {
-                                    Text("Edit", color = theme.primary, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                                    Text("EDIT", color = theme.primary, style = MaterialTheme.typography.labelMedium)
                                 }
                                 IconButton(onClick = { viewModel.deleteSchedule(schedule) }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = theme.textSecondary)
+                                    Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = Color(0xFFEF4444).copy(alpha = 0.7f))
                                 }
                             }
                         }
@@ -206,9 +149,9 @@ fun SchedulesScreen(
         } else {
             EmptyStateView(
                 title = "No Rotations Scheduled",
-                description = "Set up automated daily or hourly wallpaper rotations using your favorites or specific collections.",
+                description = "Set up automated daily or hourly wallpaper rotations using your favorites or collections.",
                 icon = Icons.Filled.Schedule,
-                buttonText = "Create Schedule",
+                buttonText = "CREATE SCHEDULE",
                 onButtonClick = {
                     selectedScheduleForEdit = ScheduleEntity(name = "Daily Rotation", timeHour = 8, timeMinute = 0)
                     showEditDialog = true
@@ -224,14 +167,20 @@ fun SchedulesScreen(
 
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            title = { Text(if (sched.id == 0L) "New Rotation Schedule" else "Edit Rotation Schedule", color = theme.textPrimary) },
+            title = { Text(if (sched.id == 0L) "New Rotation" else "Edit Rotation", color = theme.textPrimary) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(
                         value = sched.name,
                         onValueChange = { sched = sched.copy(name = it) },
                         label = { Text("Schedule Name") },
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = theme.primary,
+                            unfocusedBorderColor = theme.borderGlow.copy(alpha = 0.3f),
+                            focusedTextColor = theme.textPrimary,
+                            unfocusedTextColor = theme.textPrimary
+                        )
                     )
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -239,34 +188,48 @@ fun SchedulesScreen(
                             value = sched.timeHour.toString(),
                             onValueChange = { sched = sched.copy(timeHour = it.toIntOrNull()?.coerceIn(0, 23) ?: 0) },
                             label = { Text("Hour (0-23)") },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = theme.primary,
+                                unfocusedBorderColor = theme.borderGlow.copy(alpha = 0.3f),
+                                focusedTextColor = theme.textPrimary,
+                                unfocusedTextColor = theme.textPrimary
+                            )
                         )
                         OutlinedTextField(
                             value = sched.timeMinute.toString(),
                             onValueChange = { sched = sched.copy(timeMinute = it.toIntOrNull()?.coerceIn(0, 59) ?: 0) },
                             label = { Text("Minute (0-59)") },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = theme.primary,
+                                unfocusedBorderColor = theme.borderGlow.copy(alpha = 0.3f),
+                                focusedTextColor = theme.textPrimary,
+                                unfocusedTextColor = theme.textPrimary
+                            )
                         )
                     }
 
-                    Text("Source Wallpaper Pool", style = MaterialTheme.typography.labelMedium.copy(color = theme.textSecondary))
+                    Text("SOURCE POOL", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf("FAVORITES", "ALL", "COLLECTION").forEach { pool ->
                             FilterChip(
                                 selected = sched.sourceType == pool,
                                 onClick = { sched = sched.copy(sourceType = pool) },
-                                label = { Text(pool) }
+                                label = { Text(pool) },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = theme.primary.copy(alpha = 0.2f), selectedLabelColor = theme.primary)
                             )
                         }
                     }
 
-                    Text("Selection Mode", style = MaterialTheme.typography.labelMedium.copy(color = theme.textSecondary))
+                    Text("SELECTION MODE", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf("RANDOM", "SEQUENTIAL", "LRU").forEach { mode ->
                             FilterChip(
                                 selected = sched.selectionMode == mode,
                                 onClick = { sched = sched.copy(selectionMode = mode) },
-                                label = { Text(mode) }
+                                label = { Text(mode) },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = theme.primary.copy(alpha = 0.2f), selectedLabelColor = theme.primary)
                             )
                         }
                     }
@@ -278,17 +241,19 @@ fun SchedulesScreen(
                         viewModel.saveSchedule(sched)
                         showEditDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = theme.primary)
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Save Schedule")
+                    Text("SAVE")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
-                    Text("Cancel")
+                    Text("CANCEL", color = theme.textSecondary)
                 }
             },
-            containerColor = theme.surface
+            containerColor = theme.surface,
+            shape = RoundedCornerShape(12.dp)
         )
     }
 }

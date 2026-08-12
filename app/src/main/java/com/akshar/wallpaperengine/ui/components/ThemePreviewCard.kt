@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -16,7 +15,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.akshar.wallpaperengine.theme.AppThemeId
 import com.akshar.wallpaperengine.theme.LocalThemeColors
 import com.akshar.wallpaperengine.theme.ThemePalette
@@ -29,103 +27,78 @@ fun ThemePreviewCard(
     modifier: Modifier = Modifier
 ) {
     val currentTheme = LocalThemeColors.current
-    val previewPalette = ThemePalette.getThemeColors(themeId.id)
-    val shape = RoundedCornerShape(16.dp)
+    val previewColors = ThemePalette.getThemeColors(themeId.id)
+    val shape = RoundedCornerShape(12.dp)
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
             .border(
-                width = if (isSelected) 2.dp else 1.dp,
-                color = if (isSelected) currentTheme.primary else currentTheme.borderGlow.copy(alpha = 0.2f),
+                width = if (isSelected) 1.5.dp else 1.dp,
+                color = if (isSelected) currentTheme.primary else currentTheme.borderGlow,
                 shape = shape
             )
             .clickable(onClick = onSelect),
-        colors = CardDefaults.cardColors(containerColor = previewPalette.surface),
+        colors = CardDefaults.cardColors(containerColor = previewColors.background),
         shape = shape
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // Miniature UI preview
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(previewColors.surface)
+                    .border(1.dp, previewColors.borderGlow, RoundedCornerShape(8.dp))
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = themeId.displayName,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = previewPalette.textPrimary
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = themeId.description,
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 11.sp,
-                            color = previewPalette.textSecondary
-                        ),
-                        maxLines = 2
-                    )
-                }
-
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Filled.CheckCircle,
-                        contentDescription = "Selected Theme",
-                        tint = currentTheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                // Mini accent header
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(12.dp)
+                        .background(previewColors.primary.copy(alpha = 0.2f))
+                )
+                // Mini accent line
+                Box(
+                    modifier = Modifier
+                        .padding(start = 8.dp, top = 20.dp)
+                        .width(20.dp)
+                        .height(4.dp)
+                        .background(previewColors.primary)
+                )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-            // Color Palette Swatches Bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(24.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(previewPalette.background),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(CircleShape)
-                        .background(previewPalette.background)
-                        .border(1.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = themeId.displayName,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = previewColors.textPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(CircleShape)
-                        .background(previewPalette.surface)
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = themeId.description,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = previewColors.textSecondary
+                    )
                 )
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(CircleShape)
-                        .background(previewPalette.primary)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(CircleShape)
-                        .background(previewPalette.secondary)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(CircleShape)
-                        .background(previewPalette.tertiary)
+            }
+
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = "Selected Theme",
+                    tint = currentTheme.primary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }

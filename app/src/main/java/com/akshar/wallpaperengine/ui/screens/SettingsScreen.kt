@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.akshar.wallpaperengine.shader.ShaderIntensity
 import com.akshar.wallpaperengine.shader.ShaderStyle
 import com.akshar.wallpaperengine.theme.AppThemeId
@@ -39,96 +36,13 @@ fun SettingsScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "Engine Settings",
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold, color = theme.textPrimary)
+            text = "SETTINGS",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp),
+            modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Section 1: APPEARANCE
-        Text("APPEARANCE & SHADERS", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = theme.primary, letterSpacing = 1.sp))
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable GPU Shaders", style = MaterialTheme.typography.bodyLarge.copy(color = theme.textPrimary, fontWeight = FontWeight.SemiBold))
-                    Switch(
-                        checked = prefs.shaderEnabled,
-                        onCheckedChange = { viewModel.toggleShader(it) },
-                        modifier = Modifier.testTag("shader_toggle_switch")
-                    )
-                }
-
-                if (prefs.shaderEnabled) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Shader Style", style = MaterialTheme.typography.labelMedium.copy(color = theme.textSecondary))
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    ShaderStyle.values().forEach { style ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = prefs.shaderStyle == style.id,
-                                onClick = { viewModel.selectShaderStyle(style.id) }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column {
-                                Text(style.displayName, style = MaterialTheme.typography.bodyMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold))
-                                Text(style.description, style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Shader Intensity", style = MaterialTheme.typography.labelMedium.copy(color = theme.textSecondary))
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ShaderIntensity.values().forEach { intensity ->
-                            FilterChip(
-                                selected = prefs.shaderIntensity == intensity.id,
-                                onClick = { viewModel.selectShaderIntensity(intensity.id) },
-                                label = { Text(intensity.name) }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Reduce Motion", style = MaterialTheme.typography.bodyLarge.copy(color = theme.textPrimary, fontWeight = FontWeight.SemiBold))
-                    Switch(
-                        checked = prefs.reduceMotion,
-                        onCheckedChange = { viewModel.toggleReduceMotion(it) }
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Section 2: THEME PALETTES
-        Text("THEME PALETTES", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = theme.primary, letterSpacing = 1.sp))
-        Spacer(modifier = Modifier.height(8.dp))
+        // Section 1: THEME PALETTES
+        SettingsSectionHeader("THEME PALETTES")
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             AppThemeId.values().forEach { appTheme ->
@@ -141,11 +55,85 @@ fun SettingsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Section 2: APPEARANCE & SHADERS
+        SettingsSectionHeader("APPEARANCE & SHADERS")
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = theme.background),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                SettingsToggleRow(
+                    label = "Enable GPU Shaders",
+                    checked = prefs.shaderEnabled,
+                    onCheckedChange = { viewModel.toggleShader(it) },
+                    testTag = "shader_toggle_switch"
+                )
+
+                if (prefs.shaderEnabled) {
+                    Divider(color = theme.borderGlow.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 12.dp))
+
+                    Text("SHADER STYLE", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ShaderStyle.values().forEach { style ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = prefs.shaderStyle == style.id,
+                                onClick = { viewModel.selectShaderStyle(style.id) },
+                                colors = RadioButtonDefaults.colors(selectedColor = theme.primary, unselectedColor = theme.textSecondary)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(style.displayName, style = MaterialTheme.typography.bodyMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold))
+                                Text(style.description, style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("SHADER INTENSITY", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ShaderIntensity.values().forEach { intensity ->
+                            FilterChip(
+                                selected = prefs.shaderIntensity == intensity.id,
+                                onClick = { viewModel.selectShaderIntensity(intensity.id) },
+                                label = { Text(intensity.name) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                                    selectedLabelColor = theme.primary
+                                ),
+                                border = FilterChipDefaults.filterChipBorder(borderColor = theme.borderGlow.copy(alpha = 0.2f))
+                            )
+                        }
+                    }
+                }
+
+                Divider(color = theme.borderGlow.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 12.dp))
+
+                SettingsToggleRow(
+                    label = "Reduce Motion",
+                    checked = prefs.reduceMotion,
+                    onCheckedChange = { viewModel.toggleReduceMotion(it) }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         // Section 3: PERFORMANCE
-        Text("PERFORMANCE PROFILE", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = theme.primary, letterSpacing = 1.sp))
-        Spacer(modifier = Modifier.height(8.dp))
+        SettingsSectionHeader("PERFORMANCE PROFILE")
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -157,28 +145,72 @@ fun SettingsScreen(
                     onClick = { viewModel.selectPerformanceMode(mode) },
                     label = { Text(mode) },
                     modifier = Modifier.weight(1f),
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = theme.primary)
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                        selectedLabelColor = theme.primary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(borderColor = theme.borderGlow.copy(alpha = 0.2f))
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         // Section 4: ABOUT
-        Text("ABOUT ENGINE", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = theme.primary, letterSpacing = 1.sp))
-        Spacer(modifier = Modifier.height(8.dp))
+        SettingsSectionHeader("ABOUT ENGINE")
 
         Card(
-            colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant),
-            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = theme.background),
+            shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Wallpaper Engine v1.0.0", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary))
+                Text("Wallpaper Engine v1.0.0", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text("High-performance OLED wallpaper rotation engine built with Jetpack Compose, Room & WorkManager.", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
             }
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Composable
+private fun SettingsSectionHeader(title: String) {
+    val theme = LocalThemeColors.current
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = theme.textSecondary, letterSpacing = 1.dp),
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+}
+
+@Composable
+private fun SettingsToggleRow(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    testTag: String = ""
+) {
+    val theme = LocalThemeColors.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge.copy(color = theme.textPrimary, fontWeight = FontWeight.Medium))
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.testTag(testTag),
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = theme.onPrimary,
+                checkedTrackColor = theme.primary,
+                uncheckedThumbColor = theme.textSecondary,
+                uncheckedTrackColor = theme.surface
+            )
+        )
     }
 }
