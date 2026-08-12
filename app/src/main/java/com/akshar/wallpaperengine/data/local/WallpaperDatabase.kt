@@ -17,7 +17,7 @@ import com.akshar.wallpaperengine.data.local.entity.*
         ScheduleEntity::class,
         WallpaperHistoryEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class WallpaperDatabase : RoomDatabase() {
