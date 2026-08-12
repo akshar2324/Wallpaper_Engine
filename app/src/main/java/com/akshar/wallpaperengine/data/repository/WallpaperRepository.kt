@@ -1,6 +1,7 @@
 package com.akshar.wallpaperengine.data.repository
 
 import android.content.Context
+import androidx.sqlite.db.SimpleSQLiteQuery
 import com.akshar.wallpaperengine.data.local.dao.CollectionDao
 import com.akshar.wallpaperengine.data.local.dao.TagDao
 import com.akshar.wallpaperengine.data.local.dao.WallpaperDao
@@ -47,47 +48,54 @@ class WallpaperRepository(
     val wallpaperCount: Flow<Int> = wallpaperDao.getWallpaperCount()
 
     fun getFilteredWallpapers(options: FilterOptions): Flow<List<WallpaperEntity>> {
-        val baseFlow = if (options.collectionId != null) {
-            wallpaperDao.getWallpapersForCollection(options.collectionId)
-        } else if (options.tagId != null) {
-            wallpaperDao.getWallpapersForTag(options.tagId)
-        } else {
-            wallpaperDao.getAllWallpapers()
+        var query = "SELECT DISTINCT w.* FROM wallpapers w"
+
+        if (options.collectionId != null) {
+            query += " INNER JOIN wallpaper_collection_cross_ref c ON w.id = c.wallpaperId AND c.collectionId = ${options.collectionId}"
+        }
+        if (options.tagId != null) {
+            query += " INNER JOIN wallpaper_tag_cross_ref t ON w.id = t.wallpaperId AND t.tagId = ${options.tagId}"
         }
 
-        return baseFlow.map { list ->
-            var result = list
+        var hasWhere = false
+        val conditions = mutableListOf<String>()
+        val bindArgs = mutableListOf<Any>()
 
-            if (options.searchQuery.isNotBlank()) {
-                val q = options.searchQuery.trim().lowercase()
-                result = result.filter { it.title.lowercase().contains(q) }
-            }
+        if (options.searchQuery.isNotBlank()) {
+            conditions.add("w.title LIKE ?")
+            bindArgs.add("%${options.searchQuery}%")
+        }
 
-            if (options.favoritesOnly) {
-                result = result.filter { it.isFavorite }
-            }
+        if (options.favoritesOnly) {
+            conditions.add("w.isFavorite = 1")
+        }
 
-            if (options.orientation != OrientationFilter.ALL) {
-                result = result.filter {
-                    val ratio = it.width.toFloat() / it.height.toFloat()
-                    when (options.orientation) {
-                        OrientationFilter.PORTRAIT -> ratio < 0.9f
-                        OrientationFilter.LANDSCAPE -> ratio > 1.1f
-                        OrientationFilter.SQUARE -> ratio in 0.9f..1.1f
-                        else -> true
-                    }
-                }
-            }
-
-            when (options.sortOrder) {
-                SortOrder.RECENTLY_ADDED -> result.sortedByDescending { it.dateAdded }
-                SortOrder.RECENTLY_USED -> result.sortedByDescending { it.lastUsed ?: 0L }
-                SortOrder.NAME_ASC -> result.sortedBy { it.title.lowercase() }
-                SortOrder.NAME_DESC -> result.sortedByDescending { it.title.lowercase() }
-                SortOrder.HIGHEST_RESOLUTION -> result.sortedByDescending { it.width * it.height }
-                SortOrder.LOWEST_RESOLUTION -> result.sortedBy { it.width * it.height }
+        if (options.orientation != OrientationFilter.ALL) {
+            // Use SQL for basic ratio comparisons
+            when (options.orientation) {
+                OrientationFilter.PORTRAIT -> conditions.add("CAST(w.width AS FLOAT) / w.height < 0.9")
+                OrientationFilter.LANDSCAPE -> conditions.add("CAST(w.width AS FLOAT) / w.height > 1.1")
+                OrientationFilter.SQUARE -> conditions.add("CAST(w.width AS FLOAT) / w.height >= 0.9 AND CAST(w.width AS FLOAT) / w.height <= 1.1")
+                else -> {}
             }
         }
+
+        if (conditions.isNotEmpty()) {
+            query += " WHERE " + conditions.joinToString(" AND ")
+        }
+
+        val sortClause = when (options.sortOrder) {
+            SortOrder.RECENTLY_ADDED -> " ORDER BY w.dateAdded DESC"
+            SortOrder.RECENTLY_USED -> " ORDER BY w.lastUsed DESC"
+            SortOrder.NAME_ASC -> " ORDER BY LOWER(w.title) ASC"
+            SortOrder.NAME_DESC -> " ORDER BY LOWER(w.title) DESC"
+            SortOrder.HIGHEST_RESOLUTION -> " ORDER BY (w.width * w.height) DESC"
+            SortOrder.LOWEST_RESOLUTION -> " ORDER BY (w.width * w.height) ASC"
+        }
+
+        query += sortClause
+
+        return wallpaperDao.getWallpapersFiltered(SimpleSQLiteQuery(query, bindArgs.toTypedArray()))
     }
 
     suspend fun getWallpaperById(id: Long): WallpaperEntity? = wallpaperDao.getWallpaperById(id)

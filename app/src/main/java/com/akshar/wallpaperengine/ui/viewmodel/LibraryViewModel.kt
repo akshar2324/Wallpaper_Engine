@@ -132,18 +132,36 @@ class LibraryViewModel(
     fun importImagesFromUris(context: Context, uris: List<Uri>) {
         viewModelScope.launch {
             uris.forEach { uri ->
+                var finalUri = uri.toString()
                 try {
                     context.contentResolver.takePersistableUriPermission(
                         uri,
                         android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
                 } catch (e: Exception) {
-                    // Gracefully ignore if persisted permission is unavailable (e.g. some third party providers)
+                    // Gracefully handle if persisted permission is unavailable (e.g. some third party providers)
+                    // Copy file to internal storage
+                    try {
+                        val inputStream = context.contentResolver.openInputStream(uri)
+                        if (inputStream != null) {
+                            val fileName = "imported_${System.currentTimeMillis()}_${uri.lastPathSegment?.replace("/", "_") ?: "image"}.jpg"
+                            val file = java.io.File(context.filesDir, fileName)
+                            val outputStream = java.io.FileOutputStream(file)
+                            inputStream.use { input ->
+                                outputStream.use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                            finalUri = android.net.Uri.fromFile(file).toString()
+                        }
+                    } catch (ioException: Exception) {
+                        ioException.printStackTrace()
+                    }
                 }
                 
                 val title = uri.lastPathSegment?.substringAfterLast('/') ?: "Imported Wallpaper"
                 val entity = WallpaperEntity(
-                    uri = uri.toString(),
+                    uri = finalUri,
                     title = title,
                     dateAdded = System.currentTimeMillis()
                 )

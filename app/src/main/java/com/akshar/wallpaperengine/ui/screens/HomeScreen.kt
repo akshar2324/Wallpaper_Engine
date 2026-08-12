@@ -1,8 +1,5 @@
 package com.akshar.wallpaperengine.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,25 +18,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.akshar.wallpaperengine.data.local.entity.ScheduleEntity
 import com.akshar.wallpaperengine.data.local.entity.WallpaperEntity
 import com.akshar.wallpaperengine.theme.LocalThemeColors
 import com.akshar.wallpaperengine.ui.components.ProceduralWallpaperPreview
 import com.akshar.wallpaperengine.ui.components.WallpaperCard
 import com.akshar.wallpaperengine.ui.viewmodel.HomeViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
@@ -51,304 +42,193 @@ fun HomeScreen(
     val theme = LocalThemeColors.current
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
-
-    val currentWallpaper = uiState.currentWallpaper
     var showApplyQuickMenu by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(16.dp)
+            .padding(bottom = 24.dp)
     ) {
-        // Top Header
+        // Subtle Greeting
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "WALLPAPER ENGINE",
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        color = theme.primary,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.5.sp
-                    )
+            Text(
+                text = "Wallpaper Engine",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = theme.textPrimary,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.dp
                 )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "Dashboard",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        color = theme.textPrimary,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                )
-            }
-
-            // Engine status badge
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(theme.surfaceVariant)
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(20.dp))
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF22C55E))
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "ONLINE",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = theme.textSecondary,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        )
-                    )
-                }
-            }
+            )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Hero Active Wallpaper Display
-        Text(
-            text = "Active Surface",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = theme.textSecondary,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp
-            )
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        val cardShape = RoundedCornerShape(16.dp)
-
-        Card(
+        // Hero Image - Current Wallpaper
+        val currentWallpaper = uiState.currentWallpaper
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(280.dp)
-                .clip(cardShape)
-                .border(1.dp, Color.White.copy(alpha = 0.1f), cardShape)
+                .padding(horizontal = 16.dp)
+                .aspectRatio(9f / 16f) // Maintain phone aspect ratio for hero
+                .clip(RoundedCornerShape(16.dp))
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                 .clickable {
-                    if (currentWallpaper != null) onNavigateToDetail(currentWallpaper.id) else onNavigateToLibrary()
+                    if (currentWallpaper != null) {
+                        onNavigateToDetail(currentWallpaper.id)
+                    }
                 }
-                .testTag("current_wallpaper_card"),
-            colors = CardDefaults.cardColors(containerColor = theme.surface),
-            shape = cardShape
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (currentWallpaper != null) {
-                    if (currentWallpaper.isSample || currentWallpaper.uri.startsWith("sample_")) {
-                        ProceduralWallpaperPreview(
-                            sampleKey = currentWallpaper.uri,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(currentWallpaper.uri)
-                                .size(800) // downsample for performance
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = currentWallpaper.title,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-
-                    // Gradient overlay
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f)),
-                                    startY = 100f
-                                )
-                            )
+            if (currentWallpaper != null) {
+                if (currentWallpaper.isSample || currentWallpaper.uri.startsWith("sample_")) {
+                    ProceduralWallpaperPreview(
+                        sampleKey = currentWallpaper.uri,
+                        modifier = Modifier.fillMaxSize()
                     )
+                } else {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(currentWallpaper.uri)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Current Wallpaper",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
 
-                    // Overlay info
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = currentWallpaper.title,
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                // Overlay gradient for text readability
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Transparent, Color.Black.copy(alpha = 0.8f))
+                            )
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "${currentWallpaper.width}x${currentWallpaper.height} • ${currentWallpaper.mimeType.substringAfter('/')}",
-                            style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary)
-                        )
-                    }
+                )
 
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(12.dp)
-                    ) {
+                // Hero Content Overlay
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(20.dp)
+                ) {
+                    Text(
+                        text = "ACTIVE",
+                        style = MaterialTheme.typography.labelSmall.copy(color = theme.primary, letterSpacing = 2.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = currentWallpaper.title,
+                        style = MaterialTheme.typography.headlineMedium.copy(color = Color.White)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Button(
                             onClick = { showApplyQuickMenu = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.testTag("quick_apply_button")
+                            colors = ButtonDefaults.buttonColors(containerColor = theme.surface),
+                            shape = RoundedCornerShape(8.dp)
                         ) {
-                            Icon(Icons.Filled.FlashOn, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Apply")
+                            Text("APPLY", style = MaterialTheme.typography.labelMedium.copy(color = theme.textPrimary))
+                        }
+
+                        IconButton(
+                            onClick = { viewModel.toggleFavorite(currentWallpaper) },
+                            modifier = Modifier
+                                .background(theme.surface.copy(alpha = 0.5f), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = if (currentWallpaper.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                contentDescription = "Favorite",
+                                tint = if (currentWallpaper.isFavorite) theme.primary else theme.textPrimary
+                            )
                         }
                     }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(theme.surfaceVariant),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Filled.Wallpaper, contentDescription = null, tint = theme.primary, modifier = Modifier.size(48.dp))
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("No Wallpaper Set", style = MaterialTheme.typography.titleMedium.copy(color = theme.textPrimary))
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text("Explore library to pick one", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
-                        }
+                }
+            } else {
+                // Empty state for Hero
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(theme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Filled.Wallpaper, contentDescription = null, tint = theme.textSecondary, modifier = Modifier.size(48.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("No Wallpaper Active", style = MaterialTheme.typography.titleMedium.copy(color = theme.textSecondary))
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // Quick Stats Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            StatCard(
-                count = uiState.totalWallpapers.toString(),
-                label = "Wallpapers",
-                icon = Icons.Filled.PhotoLibrary,
-                onClick = onNavigateToLibrary,
-                modifier = Modifier.weight(1f)
-            )
-            StatCard(
-                count = uiState.totalFavorites.toString(),
-                label = "Favorites",
-                icon = Icons.Filled.Favorite,
-                onClick = onNavigateToLibrary,
-                modifier = Modifier.weight(1f)
-            )
-            StatCard(
-                count = uiState.totalSchedules.toString(),
-                label = "Active Rotations",
-                icon = Icons.Outlined.Schedule,
-                onClick = onNavigateToSchedules,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Upcoming Schedule Banner
+        // Upcoming Schedule Strip
         val upcoming = uiState.nextUpcomingSchedule
         if (upcoming != null) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onNavigateToSchedules),
-                colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant),
-                shape = RoundedCornerShape(16.dp)
-            ) {
+            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                Text(
+                    text = "UPCOMING ROTATION",
+                    style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { onNavigateToSchedules() }
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(theme.primaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Filled.Autorenew, contentDescription = null, tint = theme.primary)
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Next Scheduled Rotation",
-                            style = MaterialTheme.typography.labelMedium.copy(color = theme.textSecondary)
-                        )
-                        Text(
-                            text = "${upcoming.name} (${String.format("%02d:%02d", upcoming.timeHour, upcoming.timeMinute)})",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
-                        )
-                    }
-                    Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = theme.textSecondary)
+                    Icon(Icons.Outlined.Schedule, contentDescription = null, tint = theme.primary, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "${upcoming.name} at ${String.format("%02d:%02d", upcoming.timeHour, upcoming.timeMinute)}",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = theme.textPrimary)
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
         // Recently Used Horizontal Carousel
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Recently Applied",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = theme.textPrimary
-                )
-            )
-            TextTextButton(text = "View All", onClick = onNavigateToLibrary)
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
         if (uiState.recentlyUsed.isNotEmpty()) {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(uiState.recentlyUsed, key = { it.id }) { item ->
-                    WallpaperCard(
-                        wallpaper = item,
-                        onClick = { onNavigateToDetail(item.id) },
-                        onFavoriteToggle = { viewModel.toggleFavorite(item) },
-                        modifier = Modifier.width(130.dp)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                PaddingValues(horizontal = 24.dp).let { padding ->
+                    Text(
+                        text = "RECENTLY APPLIED",
+                        style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp),
+                        modifier = Modifier.padding(padding)
                     )
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp)
+                ) {
+                    items(uiState.recentlyUsed, key = { it.id }) { item ->
+                        WallpaperCard(
+                            wallpaper = item,
+                            onClick = { onNavigateToDetail(item.id) },
+                            onFavoriteToggle = { viewModel.toggleFavorite(item) },
+                            modifier = Modifier.width(110.dp) // Smaller width for recently used strip
+                        )
+                    }
+                }
             }
-        } else {
-            Text(
-                text = "No recently applied wallpapers yet",
-                style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary),
-                modifier = Modifier.padding(vertical = 12.dp)
-            )
         }
     }
 
     // Quick Apply Modal
-    if (showApplyQuickMenu && currentWallpaper != null) {
+    if (showApplyQuickMenu && uiState.currentWallpaper != null) {
         AlertDialog(
             onDismissRequest = { showApplyQuickMenu = false },
-            title = { Text("Set Active Wallpaper", color = theme.textPrimary) },
-            text = { Text("Choose destination screen:", color = theme.textSecondary) },
+            title = { Text("Set Destination", style = MaterialTheme.typography.titleLarge.copy(color = theme.textPrimary)) },
+            text = { Text("Where would you like to apply this wallpaper?", style = MaterialTheme.typography.bodyMedium.copy(color = theme.textSecondary)) },
             confirmButton = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -356,83 +236,46 @@ fun HomeScreen(
                 ) {
                     Button(
                         onClick = {
-                            viewModel.applyWallpaperQuick(currentWallpaper, "HOME")
+                            viewModel.applyWallpaperQuick(uiState.currentWallpaper!!, "HOME")
                             showApplyQuickMenu = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary)
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.surfaceVariant),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Home Screen")
+                        Text("HOME SCREEN", color = theme.textPrimary)
                     }
                     Button(
                         onClick = {
-                            viewModel.applyWallpaperQuick(currentWallpaper, "LOCK")
+                            viewModel.applyWallpaperQuick(uiState.currentWallpaper!!, "LOCK")
                             showApplyQuickMenu = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = theme.primaryContainer, contentColor = theme.onPrimaryContainer)
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.surfaceVariant),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Lock Screen")
+                        Text("LOCK SCREEN", color = theme.textPrimary)
                     }
                     Button(
                         onClick = {
-                            viewModel.applyWallpaperQuick(currentWallpaper, "HOME_AND_LOCK")
+                            viewModel.applyWallpaperQuick(uiState.currentWallpaper!!, "HOME_AND_LOCK")
                             showApplyQuickMenu = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = theme.secondary, contentColor = Color.White)
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Home & Lock Screen")
+                        Text("HOME & LOCK SCREEN", color = theme.onPrimary)
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showApplyQuickMenu = false }) {
-                    Text("Cancel", color = theme.textSecondary)
+                    Text("CANCEL", color = theme.textSecondary)
                 }
             },
-            containerColor = theme.surface
+            containerColor = theme.surface,
+            shape = RoundedCornerShape(12.dp)
         )
-    }
-}
-
-@Composable
-private fun StatCard(
-    count: String,
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val theme = LocalThemeColors.current
-
-    Card(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(14.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Icon(imageVector = icon, contentDescription = label, tint = theme.primary, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(text = count, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary))
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(text = label, style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary))
-        }
-    }
-}
-
-@Composable
-private fun TextTextButton(text: String, onClick: () -> Unit) {
-    val theme = LocalThemeColors.current
-    TextButton(onClick = onClick) {
-        Text(text = text, style = MaterialTheme.typography.labelMedium.copy(color = theme.primary, fontWeight = FontWeight.Bold))
     }
 }

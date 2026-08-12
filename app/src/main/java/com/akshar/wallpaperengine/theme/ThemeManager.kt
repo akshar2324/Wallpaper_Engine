@@ -51,6 +51,7 @@ fun WallpaperEngineTheme(
     CompositionLocalProvider(LocalThemeColors provides themeColors) {
         MaterialTheme(
             colorScheme = colorScheme,
+            typography = appTypography,
             content = content
         )
     }

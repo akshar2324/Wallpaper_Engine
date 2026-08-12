@@ -1,6 +1,7 @@
 package com.akshar.wallpaperengine.data.local.dao
 
 import androidx.room.*
+import androidx.sqlite.db.SupportSQLiteQuery
 import com.akshar.wallpaperengine.data.local.entity.WallpaperCollectionCrossRef
 import com.akshar.wallpaperengine.data.local.entity.WallpaperEntity
 import com.akshar.wallpaperengine.data.local.entity.WallpaperTagCrossRef
@@ -8,6 +9,16 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WallpaperDao {
+
+    @RawQuery\(observedEntities = \[WallpaperEntity::class, WallpaperCollectionCrossRef::class, WallpaperTagCrossRef::class\]\)
+    fun getWallpapersFiltered\(query: SupportSQLiteQuery\): Flow<List<WallpaperEntity>>
+
+    @RawQuery
+    suspend fun getSingleWallpaperId(query: SupportSQLiteQuery): Long?
+
+    @RawQuery
+    suspend fun getWallpaperIdsFiltered(query: SupportSQLiteQuery): List<Long>
+
 
     @Query("SELECT * FROM wallpapers ORDER BY dateAdded DESC")
     fun getAllWallpapers(): Flow<List<WallpaperEntity>>
