@@ -10,6 +10,9 @@ interface CollectionDao {
     @Query("SELECT * FROM collections ORDER BY name ASC")
     fun getAllCollections(): Flow<List<CollectionEntity>>
 
+    @Query("SELECT * FROM collections")
+    suspend fun getAllCollectionsList(): List<CollectionEntity>
+
     @Query("SELECT * FROM collections WHERE id = :id")
     suspend fun getCollectionById(id: Long): CollectionEntity?
 

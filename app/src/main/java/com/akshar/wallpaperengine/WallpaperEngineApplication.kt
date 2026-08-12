@@ -33,6 +33,12 @@ class WallpaperEngineApplication : Application() {
     lateinit var historyRepository: HistoryRepository
         private set
 
+    lateinit var playlistRepository: PlaylistRepository
+        private set
+
+    lateinit var backupService: BackupService
+        private set
+
     lateinit var wallpaperService: AndroidWallpaperService
         private set
 
@@ -56,6 +62,15 @@ class WallpaperEngineApplication : Application() {
         tagRepository = TagRepository(database.tagDao())
         scheduleRepository = ScheduleRepository(database.scheduleDao())
         historyRepository = HistoryRepository(database.historyDao())
+        playlistRepository = PlaylistRepository(database.playlistDao())
+
+        backupService = BackupService(
+            context = this,
+            collectionDao = database.collectionDao(),
+            tagDao = database.tagDao(),
+            playlistDao = database.playlistDao(),
+            scheduleDao = database.scheduleDao()
+        )
 
         wallpaperService = AndroidWallpaperService(this)
         wallpaperScheduler = WallpaperScheduler(this)

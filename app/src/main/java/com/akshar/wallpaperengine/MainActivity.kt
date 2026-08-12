@@ -70,7 +70,7 @@ fun WallpaperEngineApp(
     val startDestination = if (isOnboardingCompleted) Screen.Home.route else Screen.Onboarding.route
 
     val settingsViewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModel.Factory(app.userPreferencesRepository)
+        factory = SettingsViewModel.Factory(app.userPreferencesRepository, app.backupService)
     )
 
     Scaffold(
@@ -167,7 +167,8 @@ fun WallpaperEngineApp(
                     factory = LibraryViewModel.Factory(
                         app.wallpaperRepository,
                         app.collectionRepository,
-                        app.tagRepository
+                        app.tagRepository,
+                        app.playlistRepository
                     )
                 )
                 LibraryScreen(
@@ -208,7 +209,10 @@ fun WallpaperEngineApp(
                         app.wallpaperService
                     )
                 )
-                HistoryScreen(viewModel = historyViewModel)
+                HistoryScreen(
+                    viewModel = historyViewModel,
+                    onBack = { navController.popBackStack() }
+                )
             }
 
             composable(Screen.Settings.route) {

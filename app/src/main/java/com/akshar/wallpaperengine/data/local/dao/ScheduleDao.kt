@@ -10,6 +10,9 @@ interface ScheduleDao {
     @Query("SELECT * FROM schedules ORDER BY isEnabled DESC, name ASC")
     fun getAllSchedules(): Flow<List<ScheduleEntity>>
 
+    @Query("SELECT * FROM schedules")
+    suspend fun getAllSchedulesList(): List<ScheduleEntity>
+
     @Query("SELECT * FROM schedules WHERE isEnabled = 1")
     suspend fun getEnabledSchedules(): List<ScheduleEntity>
 

@@ -15,9 +15,12 @@ import com.akshar.wallpaperengine.data.local.entity.*
         WallpaperCollectionCrossRef::class,
         WallpaperTagCrossRef::class,
         ScheduleEntity::class,
-        WallpaperHistoryEntity::class
+        WallpaperHistoryEntity::class,
+        WallpaperPositionEntity::class,
+        PlaylistEntity::class,
+        PlaylistWallpaperCrossRef::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 abstract class WallpaperDatabase : RoomDatabase() {

@@ -119,13 +119,64 @@ class LeastRecentlyUsedSelectionStrategy : BaseSqlSelectionStrategy() {
     }
 }
 
-class FavoritesSelectionStrategy : RandomSelectionStrategy() // If they just wanted 'Favorites', we'll default to Random over the Favorites pool. (Source pool determines the base query)
+class NoRepeatRandomStrategy : BaseSqlSelectionStrategy() {
+    override suspend fun selectWallpaper(
+        wallpaperDao: WallpaperDao,
+        sourceType: String,
+        collectionId: Long?,
+        specificWallpaperId: Long?,
+        lastSelectedId: Long?
+    ): Long? {
+        // Exclude the last 5 recently used wallpapers to prevent repeating history loops
+        val additionalWhere = "w.id NOT IN (SELECT id FROM wallpapers ORDER BY lastUsed DESC LIMIT 5)"
+        var query = buildBaseQuery(sourceType, collectionId, specificWallpaperId, additionalWhere, "RANDOM()")
+        var id = wallpaperDao.getSingleWallpaperId(query)
+
+        // Fallback if there are less than 5 walls in pool
+        if (id == null) {
+            val excludeCondition = if (lastSelectedId != null) "w.id != $lastSelectedId" else ""
+            query = buildBaseQuery(sourceType, collectionId, specificWallpaperId, excludeCondition, "RANDOM()")
+            id = wallpaperDao.getSingleWallpaperId(query)
+        }
+        return id
+    }
+}
+
+class WeightedFavoritesStrategy : BaseSqlSelectionStrategy() {
+    override suspend fun selectWallpaper(
+        wallpaperDao: WallpaperDao,
+        sourceType: String,
+        collectionId: Long?,
+        specificWallpaperId: Long?,
+        lastSelectedId: Long?
+    ): Long? {
+        // Note: SQLite random is purely random. A true weighted random needs an order by with a weight trick.
+        // E.g., ORDER BY RANDOM() * (CASE WHEN isFavorite = 1 THEN 3 ELSE 1 END) DESC
+        val excludeCondition = if (lastSelectedId != null) "w.id != $lastSelectedId" else ""
+        val orderBy = "(ABS(RANDOM() % 1000) * (CASE WHEN w.isFavorite = 1 THEN 3 ELSE 1 END)) DESC"
+
+        var query = buildBaseQuery(sourceType, collectionId, specificWallpaperId, excludeCondition, orderBy)
+        var id = wallpaperDao.getSingleWallpaperId(query)
+
+        if (id == null && lastSelectedId != null) {
+            query = buildBaseQuery(sourceType, collectionId, specificWallpaperId, "", orderBy)
+            id = wallpaperDao.getSingleWallpaperId(query)
+        }
+        return id
+    }
+}
+
+class FavoritesSelectionStrategy : RandomSelectionStrategy()
 
 object SelectionStrategyFactory {
     fun getStrategy(modeName: String): WallpaperSelectionStrategy {
         return when (modeName.uppercase()) {
             "SEQUENTIAL" -> SequentialSelectionStrategy()
             "LRU" -> LeastRecentlyUsedSelectionStrategy()
+            "NO_REPEAT_RANDOM" -> NoRepeatRandomStrategy()
+            "WEIGHTED_FAVORITES" -> WeightedFavoritesStrategy()
+            "PLAYLIST_SEQUENTIAL" -> PlaylistSequentialStrategy()
+            "PLAYLIST_SHUFFLE" -> PlaylistShuffleStrategy()
             else -> RandomSelectionStrategy() // Default to Random
         }
     }

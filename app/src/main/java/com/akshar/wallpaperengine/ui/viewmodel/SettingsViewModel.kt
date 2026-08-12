@@ -1,17 +1,21 @@
 package com.akshar.wallpaperengine.ui.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.akshar.wallpaperengine.data.preferences.UserPreferences
 import com.akshar.wallpaperengine.data.preferences.UserPreferencesRepository
+import com.akshar.wallpaperengine.data.repository.BackupService
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val backupService: BackupService
 ) : ViewModel() {
 
     val preferences: StateFlow<UserPreferences> = userPreferencesRepository.userPreferencesFlow
@@ -69,24 +73,27 @@ class SettingsViewModel(
         }
     }
 
-    fun updateGridDensity(density: Int) {
+    fun exportBackup(context: Context, uri: Uri, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            userPreferencesRepository.updateGridDensity(density)
+            val success = backupService.exportMetadata(uri)
+            onResult(success)
         }
     }
 
-    fun setOnboardingCompleted(completed: Boolean) {
+    fun importBackup(context: Context, uri: Uri, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            userPreferencesRepository.setOnboardingCompleted(completed)
+            val success = backupService.importMetadata(uri)
+            onResult(success)
         }
     }
 
     class Factory(
-        private val userPreferencesRepository: UserPreferencesRepository
+        private val userPreferencesRepository: UserPreferencesRepository,
+        private val backupService: BackupService
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return SettingsViewModel(userPreferencesRepository) as T
+            return SettingsViewModel(userPreferencesRepository, backupService) as T
         }
     }
 }

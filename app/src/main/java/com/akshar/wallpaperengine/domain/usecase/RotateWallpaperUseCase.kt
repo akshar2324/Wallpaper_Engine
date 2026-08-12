@@ -1,5 +1,6 @@
 package com.akshar.wallpaperengine.domain.usecase
 
+import android.util.Log
 import com.akshar.wallpaperengine.data.local.dao.HistoryDao
 import com.akshar.wallpaperengine.data.local.dao.ScheduleDao
 import com.akshar.wallpaperengine.data.local.dao.WallpaperDao
@@ -20,10 +21,12 @@ class RotateWallpaperUseCase(
         val schedule = if (scheduleId != -1L) {
             scheduleDao.getScheduleById(scheduleId)
         } else {
-            scheduleDao.getEnabledSchedules().firstOrNull()
+            // Basic conflict resolution / handling: Just take the most recently triggered enabled schedule
+            scheduleDao.getEnabledSchedules().filter { isScheduleDayActive(it.activeDaysCsv) }
+                .minByOrNull { it.nextExecution ?: 0L }
         } ?: return false
 
-        if (!schedule.isEnabled) return false
+        if (!schedule.isEnabled || !isScheduleDayActive(schedule.activeDaysCsv)) return false
 
         val strategy = SelectionStrategyFactory.getStrategy(schedule.selectionMode)
         val current = wallpaperDao.getCurrentWallpaper()
@@ -36,28 +39,34 @@ class RotateWallpaperUseCase(
         var lastId = current?.id
 
         while (attempts < 5 && !success) {
-            selectedId = strategy.selectWallpaper(
-                wallpaperDao = wallpaperDao,
-                sourceType = schedule.sourceType,
-                collectionId = schedule.sourceCollectionId,
-                specificWallpaperId = schedule.specificWallpaperId,
-                lastSelectedId = lastId
-            )
+            try {
+                selectedId = strategy.selectWallpaper(
+                    wallpaperDao = wallpaperDao,
+                    sourceType = schedule.sourceType,
+                    collectionId = schedule.sourceCollectionId, // Also acts as playlistId if source is playlist
+                    specificWallpaperId = schedule.specificWallpaperId,
+                    lastSelectedId = lastId
+                )
+            } catch (e: Exception) {
+                Log.e("RotateWallpaperUseCase", "Strategy failed: ${e.message}")
+                break
+            }
 
-            if (selectedId == null) break // Pool exhausted or empty
+            if (selectedId == null) {
+                Log.w("RotateWallpaperUseCase", "Source pool exhausted or invalid.")
+                break
+            }
 
             selectedWallpaper = wallpaperDao.getWallpaperById(selectedId!!)
 
             if (selectedWallpaper != null) {
-                success = wallpaperService.applyWallpaper(selectedWallpaper, schedule.targetScreen)
+                success = wallpaperService.applyWallpaper(selectedWallpaper, schedule.targetScreen, null) // Defaulting position null for automated tasks for now
                 if (!success) {
-                    // Dead URI or system rejection. Update lastId to try a different wallpaper
                     lastId = selectedId
-
-                    // Optional: Mark as invalid, delete it, or just let it be skipped next time.
-                    // For now, we just skip. If we want to clean it:
-                    // wallpaperDao.deleteWallpaper(selectedWallpaper)
+                    Log.w("RotateWallpaperUseCase", "Failed to apply wallpaper id: $selectedId, URI might be dead.")
                 }
+            } else {
+                lastId = selectedId
             }
             attempts++
         }
@@ -84,9 +93,31 @@ class RotateWallpaperUseCase(
                 nextExecution = calculateNextExecutionTime(schedule.timeHour, schedule.timeMinute, schedule.activeDaysCsv)
             )
             return true
+        } else {
+            // Still update execution time so we don't get stuck in a loop trying a broken schedule every minute
+            scheduleDao.updateScheduleExecutionTime(
+                id = schedule.id,
+                lastExecution = System.currentTimeMillis(),
+                nextExecution = calculateNextExecutionTime(schedule.timeHour, schedule.timeMinute, schedule.activeDaysCsv)
+            )
         }
 
         return false
+    }
+
+    private fun isScheduleDayActive(daysCsv: String): Boolean {
+        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        val dayString = when(today) {
+            Calendar.MONDAY -> "MON"
+            Calendar.TUESDAY -> "TUE"
+            Calendar.WEDNESDAY -> "WED"
+            Calendar.THURSDAY -> "THU"
+            Calendar.FRIDAY -> "FRI"
+            Calendar.SATURDAY -> "SAT"
+            Calendar.SUNDAY -> "SUN"
+            else -> ""
+        }
+        return daysCsv.contains(dayString)
     }
 
     private fun calculateNextExecutionTime(hour: Int, minute: Int, daysCsv: String): Long {
@@ -99,6 +130,29 @@ class RotateWallpaperUseCase(
         if (calendar.timeInMillis <= System.currentTimeMillis()) {
             calendar.add(Calendar.DAY_OF_YEAR, 1)
         }
+
+        // Find next valid day
+        var attempts = 0
+        while (!isScheduleDayActiveForCalendar(calendar, daysCsv) && attempts < 7) {
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+            attempts++
+        }
+
         return calendar.timeInMillis
+    }
+
+    private fun isScheduleDayActiveForCalendar(cal: Calendar, daysCsv: String): Boolean {
+        val day = cal.get(Calendar.DAY_OF_WEEK)
+        val dayString = when(day) {
+            Calendar.MONDAY -> "MON"
+            Calendar.TUESDAY -> "TUE"
+            Calendar.WEDNESDAY -> "WED"
+            Calendar.THURSDAY -> "THU"
+            Calendar.FRIDAY -> "FRI"
+            Calendar.SATURDAY -> "SAT"
+            Calendar.SUNDAY -> "SUN"
+            else -> ""
+        }
+        return daysCsv.contains(dayString)
     }
 }

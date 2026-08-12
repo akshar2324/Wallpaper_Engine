@@ -14,7 +14,10 @@ data class WallpaperDetailUiState(
     val collections: List<CollectionEntity> = emptyList(),
     val tags: List<TagEntity> = emptyList(),
     val isApplying: Boolean = false,
-    val applySuccess: Boolean? = null
+    val applySuccess: Boolean? = null,
+    val scale: Float = 1f,
+    val offsetX: Float = 0f,
+    val offsetY: Float = 0f
 )
 
 class WallpaperDetailViewModel(
@@ -50,6 +53,20 @@ class WallpaperDetailViewModel(
         }
     }
 
+    fun updateTransform(scale: Float, offsetX: Float, offsetY: Float) {
+        _uiState.update {
+            it.copy(
+                scale = scale.coerceIn(1f, 5f),
+                offsetX = offsetX,
+                offsetY = offsetY
+            )
+        }
+    }
+
+    fun resetTransform() {
+        _uiState.update { it.copy(scale = 1f, offsetX = 0f, offsetY = 0f) }
+    }
+
     fun toggleFavorite() {
         val current = _uiState.value.wallpaper ?: return
         viewModelScope.launch {
@@ -61,9 +78,22 @@ class WallpaperDetailViewModel(
 
     fun applyWallpaper(targetScreen: String) {
         val wallpaper = _uiState.value.wallpaper ?: return
+        val currentScale = _uiState.value.scale
+        val currentOffsetX = _uiState.value.offsetX
+        val currentOffsetY = _uiState.value.offsetY
+
         viewModelScope.launch {
             _uiState.update { it.copy(isApplying = true, applySuccess = null) }
-            val success = wallpaperService.applyWallpaper(wallpaper, targetScreen)
+
+            val position = WallpaperPositionEntity(
+                wallpaperId = wallpaper.id,
+                targetScreen = targetScreen,
+                scale = currentScale,
+                offsetX = currentOffsetX,
+                offsetY = currentOffsetY
+            )
+
+            val success = wallpaperService.applyWallpaper(wallpaper, targetScreen, position)
             if (success) {
                 wallpaperRepository.updateLastUsed(wallpaper.id)
                 historyRepository.recordHistory(

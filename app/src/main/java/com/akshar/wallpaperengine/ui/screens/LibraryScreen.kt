@@ -45,6 +45,9 @@ fun LibraryScreen(
 
     var showFilterSheet by remember { mutableStateOf(false) }
     var showAddToCollectionDialog by remember { mutableStateOf(false) }
+    var showAddToPlaylistDialog by remember { mutableStateOf(false) }
+    var showAddTagDialog by remember { mutableStateOf(false) }
+    var newTagName by remember { mutableStateOf("") }
 
     val pickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents(),
@@ -150,7 +153,13 @@ fun LibraryScreen(
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
                 )
 
-                Row {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    IconButton(onClick = { showAddTagDialog = true }) {
+                        Icon(Icons.Filled.Label, contentDescription = "Add Tag", tint = theme.textPrimary)
+                    }
+                    IconButton(onClick = { showAddToPlaylistDialog = true }) {
+                        Icon(Icons.Filled.QueueMusic, contentDescription = "Add to Playlist", tint = theme.textPrimary)
+                    }
                     IconButton(onClick = { showAddToCollectionDialog = true }) {
                         Icon(Icons.Filled.FolderSpecial, contentDescription = "Add to Collection", tint = theme.textPrimary)
                     }
@@ -307,6 +316,79 @@ fun LibraryScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showAddToCollectionDialog = false }) {
+                    Text("CANCEL", color = theme.textSecondary)
+                }
+            },
+            containerColor = theme.surface,
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
+
+    // Add to Playlist Batch Modal
+    if (showAddToPlaylistDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddToPlaylistDialog = false },
+            title = { Text("Add to Playlist", style = MaterialTheme.typography.titleLarge.copy(color = theme.textPrimary)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    uiState.playlists.forEach { playlist ->
+                        TextButton(
+                            onClick = {
+                                viewModel.addSelectedToPlaylist(playlist.id)
+                                showAddToPlaylistDialog = false
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(playlist.name, color = theme.textPrimary, modifier = Modifier.fillMaxWidth())
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showAddToPlaylistDialog = false }) {
+                    Text("CANCEL", color = theme.textSecondary)
+                }
+            },
+            containerColor = theme.surface,
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
+
+    // Add Tag Batch Dialog
+    if (showAddTagDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddTagDialog = false },
+            title = { Text("Add Tag to Selected", color = theme.textPrimary) },
+            text = {
+                OutlinedTextField(
+                    value = newTagName,
+                    onValueChange = { newTagName = it },
+                    placeholder = { Text("e.g. cyberpunk") },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = theme.primary,
+                        unfocusedBorderColor = theme.borderGlow.copy(alpha = 0.3f),
+                        focusedTextColor = theme.textPrimary,
+                        unfocusedTextColor = theme.textPrimary
+                    )
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.addTagToSelected(newTagName)
+                        newTagName = ""
+                        showAddTagDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("ADD")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddTagDialog = false }) {
                     Text("CANCEL", color = theme.textSecondary)
                 }
             },

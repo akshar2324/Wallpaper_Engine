@@ -1,5 +1,9 @@
 package com.akshar.wallpaperengine.ui.screens
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,6 +33,29 @@ fun SettingsScreen(
     val theme = LocalThemeColors.current
     val prefs by viewModel.preferences.collectAsState()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json"),
+        onResult = { uri: Uri? ->
+            if (uri != null) {
+                viewModel.exportBackup(context, uri) { success ->
+                    Toast.makeText(context, if (success) "Backup Exported" else "Export Failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    )
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri: Uri? ->
+            if (uri != null) {
+                viewModel.importBackup(context, uri) { success ->
+                    Toast.makeText(context, if (success) "Backup Imported" else "Import Failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    )
 
     Column(
         modifier = modifier
@@ -156,7 +184,45 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Section 4: ABOUT
+        // Section 4: DATA & BACKUP
+        SettingsSectionHeader("BACKUP & RESTORE")
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = theme.background),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Metadata Backup", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary))
+                Text("Export or import your collections, playlists, and schedules.", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { exportLauncher.launch("wallpaper_engine_backup.json") },
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("EXPORT")
+                    }
+                    Button(
+                        onClick = { importLauncher.launch(arrayOf("application/json")) },
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.surfaceVariant, contentColor = theme.textPrimary),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("IMPORT")
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Section 5: ABOUT
         SettingsSectionHeader("ABOUT ENGINE")
 
         Card(

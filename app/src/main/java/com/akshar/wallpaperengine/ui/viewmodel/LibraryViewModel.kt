@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.akshar.wallpaperengine.data.local.entity.CollectionEntity
+import com.akshar.wallpaperengine.data.local.entity.PlaylistEntity
 import com.akshar.wallpaperengine.data.local.entity.TagEntity
 import com.akshar.wallpaperengine.data.local.entity.WallpaperEntity
 import com.akshar.wallpaperengine.data.repository.*
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 data class LibraryUiState(
     val wallpapers: List<WallpaperEntity> = emptyList(),
     val collections: List<CollectionEntity> = emptyList(),
+    val playlists: List<PlaylistEntity> = emptyList(),
     val tags: List<TagEntity> = emptyList(),
     val filterOptions: FilterOptions = FilterOptions(),
     val selectedWallpaperIds: Set<Long> = emptySet(),
@@ -25,7 +27,8 @@ data class LibraryUiState(
 class LibraryViewModel(
     private val wallpaperRepository: WallpaperRepository,
     private val collectionRepository: CollectionRepository,
-    private val tagRepository: TagRepository
+    private val tagRepository: TagRepository,
+    private val playlistRepository: PlaylistRepository
 ) : ViewModel() {
 
     private val _filterOptions = MutableStateFlow(FilterOptions())
@@ -36,6 +39,7 @@ class LibraryViewModel(
         _filterOptions.flatMapLatest { options -> wallpaperRepository.getFilteredWallpapers(options) },
         collectionRepository.allCollections,
         tagRepository.allTags,
+        playlistRepository.allPlaylists,
         _filterOptions,
         _selectedIds,
         _gridDensity
@@ -46,14 +50,17 @@ class LibraryViewModel(
         val collections = flows[1] as List<CollectionEntity>
         @Suppress("UNCHECKED_CAST")
         val tags = flows[2] as List<TagEntity>
-        val filter = flows[3] as FilterOptions
         @Suppress("UNCHECKED_CAST")
-        val selectedIds = flows[4] as Set<Long>
-        val gridDensity = flows[5] as Int
+        val playlists = flows[3] as List<PlaylistEntity>
+        val filter = flows[4] as FilterOptions
+        @Suppress("UNCHECKED_CAST")
+        val selectedIds = flows[5] as Set<Long>
+        val gridDensity = flows[6] as Int
 
         LibraryUiState(
             wallpapers = wallpapers,
             collections = collections,
+            playlists = playlists,
             tags = tags,
             filterOptions = filter,
             selectedWallpaperIds = selectedIds,
@@ -129,6 +136,26 @@ class LibraryViewModel(
         }
     }
 
+    fun addSelectedToPlaylist(playlistId: Long) {
+        viewModelScope.launch {
+            _selectedIds.value.forEach { id ->
+                playlistRepository.addWallpaperToPlaylist(playlistId, id)
+            }
+            clearSelection()
+        }
+    }
+
+    fun addTagToSelected(tagName: String) {
+        if (tagName.isBlank()) return
+        viewModelScope.launch {
+            val tagId = tagRepository.createTag(tagName)
+            _selectedIds.value.forEach { id ->
+                wallpaperRepository.addTagToWallpaper(id, tagId)
+            }
+            clearSelection()
+        }
+    }
+
     fun importImagesFromUris(context: Context, uris: List<Uri>) {
         viewModelScope.launch {
             uris.forEach { uri ->
@@ -173,11 +200,12 @@ class LibraryViewModel(
     class Factory(
         private val wallpaperRepository: WallpaperRepository,
         private val collectionRepository: CollectionRepository,
-        private val tagRepository: TagRepository
+        private val tagRepository: TagRepository,
+        private val playlistRepository: PlaylistRepository
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return LibraryViewModel(wallpaperRepository, collectionRepository, tagRepository) as T
+            return LibraryViewModel(wallpaperRepository, collectionRepository, tagRepository, playlistRepository) as T
         }
     }
 }
