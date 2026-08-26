@@ -72,10 +72,16 @@ fun LibraryScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "LIBRARY",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.sp)
-            )
+            Column {
+                Text(
+                    text = "Library",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold, color = theme.textPrimary)
+                )
+                Text(
+                    text = "${uiState.wallpapers.size} wallpapers",
+                    style = MaterialTheme.typography.labelMedium.copy(color = theme.textSecondary)
+                )
+            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(onClick = { showFilterSheet = true }) {
@@ -105,26 +111,27 @@ fun LibraryScreen(
                 }
             },
             singleLine = true,
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = theme.primary,
                 unfocusedBorderColor = theme.borderGlow.copy(alpha = 0.3f),
                 focusedTextColor = theme.textPrimary,
                 unfocusedTextColor = theme.textPrimary,
-                focusedContainerColor = theme.surface,
-                unfocusedContainerColor = theme.surface
+                focusedContainerColor = theme.surfaceVariant,
+                unfocusedContainerColor = theme.surfaceVariant
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
+                .heightIn(min = 54.dp)
+                .padding(bottom = 12.dp)
         )
 
-        // Quick Filter Chips row
+        // Daily discovery controls stay in one rail; detailed sorting lives in the filter sheet.
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
+                .padding(bottom = 16.dp)
         ) {
             item {
                 val isAll = !uiState.filterOptions.favoritesOnly &&
@@ -134,7 +141,7 @@ fun LibraryScreen(
                 FilterChip(
                     selected = isAll,
                     onClick = { viewModel.clearAllFilters() },
-                    label = { Text("All") },
+                    label = { Text("All wallpapers") },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = theme.primary.copy(alpha = 0.2f),
                         selectedLabelColor = theme.primary,
@@ -200,80 +207,6 @@ fun LibraryScreen(
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = isDark,
-                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
-                        selectedBorderColor = theme.primary
-                    )
-                )
-            }
-            item {
-                val isTopRated = uiState.filterOptions.minRating >= 4.0f
-                FilterChip(
-                    selected = isTopRated,
-                    onClick = {
-                        viewModel.updateMinRating(if (isTopRated) 0f else 4.0f)
-                    },
-                    label = { Text("Top Rated (4★+)") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = if (isTopRated) theme.primary else theme.textSecondary
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
-                        selectedLabelColor = theme.primary,
-                        containerColor = Color.Transparent,
-                        labelColor = theme.textSecondary
-                    ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        enabled = true,
-                        selected = isTopRated,
-                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
-                        selectedBorderColor = theme.primary
-                    )
-                )
-            }
-            item {
-                val isPortrait = uiState.filterOptions.orientation == OrientationFilter.PORTRAIT
-                FilterChip(
-                    selected = isPortrait,
-                    onClick = {
-                        viewModel.updateOrientation(if (isPortrait) OrientationFilter.ALL else OrientationFilter.PORTRAIT)
-                    },
-                    label = { Text("Portrait") },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
-                        selectedLabelColor = theme.primary,
-                        containerColor = Color.Transparent,
-                        labelColor = theme.textSecondary
-                    ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        enabled = true,
-                        selected = isPortrait,
-                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
-                        selectedBorderColor = theme.primary
-                    )
-                )
-            }
-            item {
-                val isLandscape = uiState.filterOptions.orientation == OrientationFilter.LANDSCAPE
-                FilterChip(
-                    selected = isLandscape,
-                    onClick = {
-                        viewModel.updateOrientation(if (isLandscape) OrientationFilter.ALL else OrientationFilter.LANDSCAPE)
-                    },
-                    label = { Text("Landscape") },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
-                        selectedLabelColor = theme.primary,
-                        containerColor = Color.Transparent,
-                        labelColor = theme.textSecondary
-                    ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        enabled = true,
-                        selected = isLandscape,
                         borderColor = theme.borderGlow.copy(alpha = 0.2f),
                         selectedBorderColor = theme.primary
                     )

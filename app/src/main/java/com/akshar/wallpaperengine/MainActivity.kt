@@ -107,7 +107,10 @@ fun WallpaperEngineApp(
                                     text = screen.title,
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-                                    )
+                                    ),
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                 )
                             },
                             selected = selected,
