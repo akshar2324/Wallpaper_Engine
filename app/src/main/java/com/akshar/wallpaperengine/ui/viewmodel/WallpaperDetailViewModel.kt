@@ -13,6 +13,7 @@ data class WallpaperDetailUiState(
     val wallpaper: WallpaperEntity? = null,
     val collections: List<CollectionEntity> = emptyList(),
     val tags: List<TagEntity> = emptyList(),
+    val similarWallpapers: List<WallpaperEntity> = emptyList(),
     val isApplying: Boolean = false,
     val applySuccess: Boolean? = null
 )
@@ -37,6 +38,7 @@ class WallpaperDetailViewModel(
         viewModelScope.launch {
             val wallpaper = wallpaperRepository.getWallpaperById(wallpaperId)
             _uiState.update { it.copy(wallpaper = wallpaper) }
+            loadSimilarWallpapers()
         }
         viewModelScope.launch {
             collectionRepository.allCollections.collect { cols ->
@@ -50,12 +52,52 @@ class WallpaperDetailViewModel(
         }
     }
 
+    fun loadSimilarWallpapers() {
+        viewModelScope.launch {
+            val similar = wallpaperRepository.findSimilarWallpapers(wallpaperId)
+            _uiState.update { it.copy(similarWallpapers = similar) }
+        }
+    }
+
+    fun autoTagWallpaper() {
+        viewModelScope.launch {
+            wallpaperRepository.analyzeAndTagWallpaper(wallpaperId)
+            val updated = wallpaperRepository.getWallpaperById(wallpaperId)
+            _uiState.update { it.copy(wallpaper = updated) }
+            loadSimilarWallpapers()
+        }
+    }
+
     fun toggleFavorite() {
         val current = _uiState.value.wallpaper ?: return
         viewModelScope.launch {
             val updatedFavorite = !current.isFavorite
             wallpaperRepository.toggleFavorite(current.id, updatedFavorite)
             _uiState.update { it.copy(wallpaper = current.copy(isFavorite = updatedFavorite)) }
+        }
+    }
+
+    fun updateRating(rating: Float) {
+        val current = _uiState.value.wallpaper ?: return
+        viewModelScope.launch {
+            wallpaperRepository.updateRating(wallpaperId, rating)
+            _uiState.update { it.copy(wallpaper = current.copy(rating = rating)) }
+        }
+    }
+
+    fun recordLike() {
+        val current = _uiState.value.wallpaper ?: return
+        viewModelScope.launch {
+            wallpaperRepository.recordLike(wallpaperId)
+            _uiState.update { it.copy(wallpaper = current.copy(likeCount = current.likeCount + 1)) }
+        }
+    }
+
+    fun recordSkip() {
+        val current = _uiState.value.wallpaper ?: return
+        viewModelScope.launch {
+            wallpaperRepository.recordSkip(wallpaperId)
+            _uiState.update { it.copy(wallpaper = current.copy(skipCount = current.skipCount + 1, lastSkipped = System.currentTimeMillis())) }
         }
     }
 

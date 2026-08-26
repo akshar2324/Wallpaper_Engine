@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -12,7 +13,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -25,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.akshar.wallpaperengine.data.repository.OrientationFilter
 import com.akshar.wallpaperengine.data.repository.SortOrder
 import com.akshar.wallpaperengine.theme.LocalThemeColors
@@ -32,7 +36,7 @@ import com.akshar.wallpaperengine.ui.components.EmptyStateView
 import com.akshar.wallpaperengine.ui.components.WallpaperCard
 import com.akshar.wallpaperengine.ui.viewmodel.LibraryViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun LibraryScreen(
     viewModel: LibraryViewModel,
@@ -70,7 +74,7 @@ fun LibraryScreen(
         ) {
             Text(
                 text = "LIBRARY",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp)
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.sp)
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -87,6 +91,196 @@ fun LibraryScreen(
             }
         }
 
+        // Search Bar
+        OutlinedTextField(
+            value = uiState.filterOptions.searchQuery,
+            onValueChange = { viewModel.updateSearchQuery(it) },
+            placeholder = { Text("Search wallpapers, styles, moods...", color = theme.textSecondary, style = MaterialTheme.typography.bodyMedium) },
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search", tint = theme.textSecondary) },
+            trailingIcon = {
+                if (uiState.filterOptions.searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                        Icon(Icons.Filled.Close, contentDescription = "Clear", tint = theme.textSecondary)
+                    }
+                }
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = theme.primary,
+                unfocusedBorderColor = theme.borderGlow.copy(alpha = 0.3f),
+                focusedTextColor = theme.textPrimary,
+                unfocusedTextColor = theme.textPrimary,
+                focusedContainerColor = theme.surface,
+                unfocusedContainerColor = theme.surface
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
+
+        // Quick Filter Chips row
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        ) {
+            item {
+                val isAll = !uiState.filterOptions.favoritesOnly &&
+                        !uiState.filterOptions.darkOnly &&
+                        uiState.filterOptions.minRating == 0f &&
+                        uiState.filterOptions.orientation == OrientationFilter.ALL
+                FilterChip(
+                    selected = isAll,
+                    onClick = { viewModel.clearAllFilters() },
+                    label = { Text("All") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                        selectedLabelColor = theme.primary,
+                        containerColor = Color.Transparent,
+                        labelColor = theme.textSecondary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isAll,
+                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                        selectedBorderColor = theme.primary
+                    )
+                )
+            }
+            item {
+                val isFav = uiState.filterOptions.favoritesOnly
+                FilterChip(
+                    selected = isFav,
+                    onClick = { viewModel.toggleFavoritesOnly() },
+                    label = { Text("Favorites") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = if (isFav) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (isFav) theme.primary else theme.textSecondary
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                        selectedLabelColor = theme.primary,
+                        containerColor = Color.Transparent,
+                        labelColor = theme.textSecondary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isFav,
+                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                        selectedBorderColor = theme.primary
+                    )
+                )
+            }
+            item {
+                val isDark = uiState.filterOptions.darkOnly
+                FilterChip(
+                    selected = isDark,
+                    onClick = { viewModel.toggleDarkOnly() },
+                    label = { Text("Dark / OLED") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.DarkMode,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (isDark) theme.primary else theme.textSecondary
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                        selectedLabelColor = theme.primary,
+                        containerColor = Color.Transparent,
+                        labelColor = theme.textSecondary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isDark,
+                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                        selectedBorderColor = theme.primary
+                    )
+                )
+            }
+            item {
+                val isTopRated = uiState.filterOptions.minRating >= 4.0f
+                FilterChip(
+                    selected = isTopRated,
+                    onClick = {
+                        viewModel.updateMinRating(if (isTopRated) 0f else 4.0f)
+                    },
+                    label = { Text("Top Rated (4★+)") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (isTopRated) theme.primary else theme.textSecondary
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                        selectedLabelColor = theme.primary,
+                        containerColor = Color.Transparent,
+                        labelColor = theme.textSecondary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isTopRated,
+                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                        selectedBorderColor = theme.primary
+                    )
+                )
+            }
+            item {
+                val isPortrait = uiState.filterOptions.orientation == OrientationFilter.PORTRAIT
+                FilterChip(
+                    selected = isPortrait,
+                    onClick = {
+                        viewModel.updateOrientation(if (isPortrait) OrientationFilter.ALL else OrientationFilter.PORTRAIT)
+                    },
+                    label = { Text("Portrait") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                        selectedLabelColor = theme.primary,
+                        containerColor = Color.Transparent,
+                        labelColor = theme.textSecondary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isPortrait,
+                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                        selectedBorderColor = theme.primary
+                    )
+                )
+            }
+            item {
+                val isLandscape = uiState.filterOptions.orientation == OrientationFilter.LANDSCAPE
+                FilterChip(
+                    selected = isLandscape,
+                    onClick = {
+                        viewModel.updateOrientation(if (isLandscape) OrientationFilter.ALL else OrientationFilter.LANDSCAPE)
+                    },
+                    label = { Text("Landscape") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                        selectedLabelColor = theme.primary,
+                        containerColor = Color.Transparent,
+                        labelColor = theme.textSecondary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isLandscape,
+                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                        selectedBorderColor = theme.primary
+                    )
+                )
+            }
+        }
+
         // Tags Bar
         if (uiState.tags.isNotEmpty()) {
             LazyRow(
@@ -94,10 +288,11 @@ fun LibraryScreen(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
             ) {
                 item {
+                    val isSelected = uiState.filterOptions.tagId == null
                     FilterChip(
-                        selected = uiState.filterOptions.tagId == null,
+                        selected = isSelected,
                         onClick = { viewModel.selectTag(null) },
-                        label = { Text("ALL") },
+                        label = { Text("ALL TAGS") },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = theme.primary.copy(alpha = 0.2f),
                             selectedLabelColor = theme.primary,
@@ -105,16 +300,19 @@ fun LibraryScreen(
                             labelColor = theme.textSecondary
                         ),
                         border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
                             borderColor = theme.borderGlow.copy(alpha = 0.2f),
                             selectedBorderColor = theme.primary
                         )
                     )
                 }
                 items(uiState.tags, key = { it.id }) { tag ->
+                    val isSelected = uiState.filterOptions.tagId == tag.id
                     FilterChip(
-                        selected = uiState.filterOptions.tagId == tag.id,
+                        selected = isSelected,
                         onClick = {
-                            if (uiState.filterOptions.tagId == tag.id) viewModel.selectTag(null)
+                            if (isSelected) viewModel.selectTag(null)
                             else viewModel.selectTag(tag.id)
                         },
                         label = { Text(tag.name.uppercase()) },
@@ -125,6 +323,8 @@ fun LibraryScreen(
                             labelColor = theme.textSecondary
                         ),
                         border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
                             borderColor = theme.borderGlow.copy(alpha = 0.2f),
                             selectedBorderColor = theme.primary
                         )
@@ -211,75 +411,181 @@ fun LibraryScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
                 Text(
                     text = "FILTER & SORT",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp)
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.sp)
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                Text("SORT BY", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
+                // Sort Order Selector
+                Text("SORT ORDER", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp))
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SortOrder.values().take(3).forEach { order ->
+                val sortOptions = listOf(
+                    "Recently Added" to SortOrder.RECENTLY_ADDED,
+                    "Highest Rated" to SortOrder.RATING_DESC,
+                    "Most Liked" to SortOrder.MOST_LIKED,
+                    "Most Viewed" to SortOrder.MOST_VIEWED,
+                    "Resolution" to SortOrder.HIGHEST_RESOLUTION,
+                    "Alphabetical" to SortOrder.NAME_ASC
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    sortOptions.forEach { (label, order) ->
+                        val isSelected = uiState.filterOptions.sortOrder == order
                         FilterChip(
-                            selected = uiState.filterOptions.sortOrder == order,
+                            selected = isSelected,
                             onClick = { viewModel.updateSortOrder(order) },
-                            label = { Text(order.name.replace('_', ' ').uppercase()) },
+                            label = { Text(label) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = theme.primary.copy(alpha = 0.2f),
-                                selectedLabelColor = theme.primary
+                                selectedLabelColor = theme.primary,
+                                containerColor = Color.Transparent,
+                                labelColor = theme.textSecondary
                             ),
-                            border = FilterChipDefaults.filterChipBorder(borderColor = theme.borderGlow.copy(alpha = 0.2f))
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isSelected,
+                                borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                                selectedBorderColor = theme.primary
+                            )
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                Text("ORIENTATION", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
+                // Minimum Rating Filter
+                Text("MINIMUM RATING", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp))
+                Spacer(modifier = Modifier.height(8.dp))
+                val ratingOptions = listOf(
+                    "All" to 0f,
+                    "3★" to 3f,
+                    "4★" to 4f,
+                    "5★" to 5f
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ratingOptions.forEach { (label, rating) ->
+                        val isSelected = if (rating == 0f) uiState.filterOptions.minRating == 0f else uiState.filterOptions.minRating == rating
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { viewModel.updateMinRating(rating) },
+                            label = { Text(label) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = theme.primary.copy(alpha = 0.2f),
+                                selectedLabelColor = theme.primary,
+                                containerColor = Color.Transparent,
+                                labelColor = theme.textSecondary
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isSelected,
+                                borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                                selectedBorderColor = theme.primary
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Orientation Filter
+                Text("ORIENTATION", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OrientationFilter.values().forEach { orient ->
+                        val isSelected = uiState.filterOptions.orientation == orient
                         FilterChip(
-                            selected = uiState.filterOptions.orientation == orient,
+                            selected = isSelected,
                             onClick = { viewModel.updateOrientation(orient) },
-                            label = { Text(orient.name) },
+                            label = { Text(orient.name.lowercase().replaceFirstChar { it.uppercase() }) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = theme.primary.copy(alpha = 0.2f),
-                                selectedLabelColor = theme.primary
+                                selectedLabelColor = theme.primary,
+                                containerColor = Color.Transparent,
+                                labelColor = theme.textSecondary
                             ),
-                            border = FilterChipDefaults.filterChipBorder(borderColor = theme.borderGlow.copy(alpha = 0.2f))
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isSelected,
+                                borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                                selectedBorderColor = theme.primary
+                            )
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
+                // Dark / OLED Only Toggle
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("FAVORITES ONLY", style = MaterialTheme.typography.labelMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold))
+                    Column {
+                        Text("DARK / OLED ONLY", style = MaterialTheme.typography.labelMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold))
+                        Text("Show only dark & true-black wallpapers", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                    }
+                    Switch(
+                        checked = uiState.filterOptions.darkOnly,
+                        onCheckedChange = { viewModel.toggleDarkOnly() }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Favorites Only Toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("FAVORITES ONLY", style = MaterialTheme.typography.labelMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold))
+                        Text("Show only starred wallpapers", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                    }
                     Switch(
                         checked = uiState.filterOptions.favoritesOnly,
                         onCheckedChange = { viewModel.toggleFavoritesOnly() }
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-                Button(
-                    onClick = { showFilterSheet = false },
+                // Action Buttons: Reset & Apply
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
-                    shape = RoundedCornerShape(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("APPLY FILTERS", style = MaterialTheme.typography.labelLarge.copy(color = theme.onPrimary))
+                    OutlinedButton(
+                        onClick = { viewModel.clearAllFilters() },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, theme.borderGlow.copy(alpha = 0.4f))
+                    ) {
+                        Icon(Icons.Filled.RestartAlt, contentDescription = null, tint = theme.textSecondary, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("RESET", color = theme.textSecondary)
+                    }
+
+                    Button(
+                        onClick = { showFilterSheet = false },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("APPLY", style = MaterialTheme.typography.labelLarge.copy(color = theme.onPrimary))
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

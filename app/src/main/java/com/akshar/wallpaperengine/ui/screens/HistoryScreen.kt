@@ -53,7 +53,7 @@ fun HistoryScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "HISTORY",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp)
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.sp)
                 )
             }
 
@@ -115,11 +115,32 @@ fun HistoryScreen(
                                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         Text(
                                             text = record.source.uppercase(),
-                                            style = MaterialTheme.typography.labelSmall.copy(color = if (record.source == "SCHEDULE") theme.primary else theme.textSecondary, letterSpacing = 1.dp)
+                                            style = MaterialTheme.typography.labelSmall.copy(color = if (record.source == "SCHEDULE") theme.primary else theme.textSecondary, letterSpacing = 1.sp)
                                         )
+                                        if (!record.selectionReason.isNullOrBlank()) {
+                                            Text("•", color = theme.textSecondary)
+                                            Surface(
+                                                shape = RoundedCornerShape(4.dp),
+                                                color = theme.primary.copy(alpha = 0.15f),
+                                                border = androidx.compose.foundation.BorderStroke(1.dp, theme.primary.copy(alpha = 0.4f))
+                                            ) {
+                                                Text(
+                                                    text = record.selectionReason,
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        color = theme.primary,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        fontSize = 10.sp
+                                                    ),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
                                         Text("•", color = theme.textSecondary)
                                         Text(
                                             text = dateFormat.format(Date(record.appliedAt)),

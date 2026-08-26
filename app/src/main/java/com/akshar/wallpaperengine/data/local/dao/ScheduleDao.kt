@@ -10,8 +10,14 @@ interface ScheduleDao {
     @Query("SELECT * FROM schedules ORDER BY isEnabled DESC, name ASC")
     fun getAllSchedules(): Flow<List<ScheduleEntity>>
 
+    @Query("SELECT * FROM schedules ORDER BY id ASC")
+    suspend fun getAllSchedulesList(): List<ScheduleEntity>
+
     @Query("SELECT * FROM schedules WHERE isEnabled = 1")
     suspend fun getEnabledSchedules(): List<ScheduleEntity>
+
+    @Query("SELECT * FROM schedules WHERE triggerType = :triggerType AND isEnabled = 1 ORDER BY priority DESC")
+    suspend fun getEnabledSchedulesByTrigger(triggerType: String): List<ScheduleEntity>
 
     @Query("SELECT * FROM schedules WHERE id = :id")
     suspend fun getScheduleById(id: Long): ScheduleEntity?
@@ -21,6 +27,9 @@ interface ScheduleDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSchedule(schedule: ScheduleEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSchedules(schedules: List<ScheduleEntity>)
 
     @Update
     suspend fun updateSchedule(schedule: ScheduleEntity)

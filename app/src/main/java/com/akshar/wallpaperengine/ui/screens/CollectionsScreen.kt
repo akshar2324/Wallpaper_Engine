@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.akshar.wallpaperengine.theme.LocalThemeColors
@@ -59,7 +60,7 @@ fun CollectionsScreen(
         ) {
             Text(
                 text = if (selected != null) selected.name.uppercase() else "COLLECTIONS",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp)
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.sp)
             )
 
             if (selected != null) {
@@ -157,7 +158,7 @@ fun CollectionsScreen(
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text(
                                         text = "${col.wallpaperCount} WALLPAPERS",
-                                        style = MaterialTheme.typography.labelSmall.copy(color = theme.primary, fontWeight = FontWeight.Bold, letterSpacing = 1.dp)
+                                        style = MaterialTheme.typography.labelSmall.copy(color = theme.primary, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                                     )
                                 }
                             }

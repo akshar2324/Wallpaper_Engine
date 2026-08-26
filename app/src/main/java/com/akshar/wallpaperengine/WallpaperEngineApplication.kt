@@ -39,6 +39,15 @@ class WallpaperEngineApplication : Application() {
     lateinit var wallpaperScheduler: WallpaperScheduler
         private set
 
+    lateinit var libraryHealthManager: com.akshar.wallpaperengine.data.maintenance.LibraryHealthManager
+        private set
+
+    lateinit var analyticsManager: com.akshar.wallpaperengine.data.analytics.AnalyticsManager
+        private set
+
+    lateinit var backupRestoreEngine: com.akshar.wallpaperengine.data.backup.BackupRestoreEngine
+        private set
+
     override fun onCreate() {
         super.onCreate()
 
@@ -53,12 +62,27 @@ class WallpaperEngineApplication : Application() {
         )
 
         collectionRepository = CollectionRepository(database.collectionDao())
-        tagRepository = TagRepository(database.tagDao())
+        tagRepository = TagRepository(database.tagDao(), database.wallpaperDao())
         scheduleRepository = ScheduleRepository(database.scheduleDao())
         historyRepository = HistoryRepository(database.historyDao())
 
         wallpaperService = AndroidWallpaperService(this)
-        wallpaperScheduler = WallpaperScheduler(this)
+        libraryHealthManager = com.akshar.wallpaperengine.data.maintenance.LibraryHealthManager(this, database.wallpaperDao(), wallpaperRepository)
+        analyticsManager = com.akshar.wallpaperengine.data.analytics.AnalyticsManager(database.wallpaperDao(), database.historyDao())
+        backupRestoreEngine = com.akshar.wallpaperengine.data.backup.BackupRestoreEngine(
+            database.wallpaperDao(),
+            database.collectionDao(),
+            database.tagDao(),
+            database.scheduleDao(),
+            database.historyDao()
+        )
+
+        try {
+            wallpaperScheduler = WallpaperScheduler(this)
+            wallpaperScheduler.schedulePeriodicTagging()
+        } catch (e: Exception) {
+            // WorkManager may not be initialized in test environments
+        }
 
         CoroutineScope(Dispatchers.IO).launch {
             wallpaperRepository.seedInitialDataIfEmpty()

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.*
 import com.akshar.wallpaperengine.data.local.entity.ScheduleEntity
 import com.akshar.wallpaperengine.workers.WallpaperChangeWorker
+import com.akshar.wallpaperengine.workers.WallpaperTaggingWorker
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
@@ -51,6 +52,37 @@ class WallpaperScheduler(private val context: Context) {
         workManager.enqueue(oneTimeWork)
     }
 
+    /**
+     * Schedules periodic background AI metadata tagging and visual similarity indexing.
+     * Uses battery-not-low constraint to ensure zero UI/battery impact.
+     */
+    fun schedulePeriodicTagging() {
+        val constraints = Constraints.Builder()
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val periodicWorkRequest = PeriodicWorkRequestBuilder<WallpaperTaggingWorker>(12, TimeUnit.HOURS)
+            .setConstraints(constraints)
+            .addTag(TAGGING_WORK_TAG)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            TAGGING_WORK_TAG,
+            ExistingPeriodicWorkPolicy.KEEP,
+            periodicWorkRequest
+        )
+    }
+
+    /**
+     * Triggers an immediate one-time background tagging and perceptual hashing pass.
+     */
+    fun triggerImmediateTagging() {
+        val oneTimeWork = OneTimeWorkRequestBuilder<WallpaperTaggingWorker>()
+            .addTag(TAGGING_WORK_TAG)
+            .build()
+        workManager.enqueue(oneTimeWork)
+    }
+
     private fun getWorkTag(scheduleId: Long): String = "wallpaper_schedule_$scheduleId"
 
     private fun calculateInitialDelayMs(hour: Int, minute: Int): Long {
@@ -65,5 +97,9 @@ class WallpaperScheduler(private val context: Context) {
             target.add(Calendar.DAY_OF_YEAR, 1)
         }
         return target.timeInMillis - now.timeInMillis
+    }
+
+    companion object {
+        const val TAGGING_WORK_TAG = "wallpaper_background_tagging"
     }
 }

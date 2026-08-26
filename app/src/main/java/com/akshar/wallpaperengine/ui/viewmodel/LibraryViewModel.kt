@@ -78,6 +78,26 @@ class LibraryViewModel(
         _filterOptions.update { it.copy(favoritesOnly = !it.favoritesOnly) }
     }
 
+    fun updateMinRating(rating: Float) {
+        _filterOptions.update { it.copy(minRating = rating) }
+    }
+
+    fun toggleDarkOnly() {
+        _filterOptions.update { it.copy(darkOnly = !it.darkOnly) }
+    }
+
+    fun updateStyle(style: String?) {
+        _filterOptions.update { it.copy(style = style) }
+    }
+
+    fun updateMood(mood: String?) {
+        _filterOptions.update { it.copy(mood = mood) }
+    }
+
+    fun clearAllFilters() {
+        _filterOptions.value = FilterOptions()
+    }
+
     fun selectCollection(collectionId: Long?) {
         _filterOptions.update { it.copy(collectionId = collectionId) }
     }
@@ -165,7 +185,7 @@ class LibraryViewModel(
                     title = title,
                     dateAdded = System.currentTimeMillis()
                 )
-                wallpaperRepository.insertWallpaper(entity)
+                wallpaperRepository.importWallpaper(entity)
             }
         }
     }

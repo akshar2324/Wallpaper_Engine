@@ -10,6 +10,9 @@ interface CollectionDao {
     @Query("SELECT * FROM collections ORDER BY name ASC")
     fun getAllCollections(): Flow<List<CollectionEntity>>
 
+    @Query("SELECT * FROM collections ORDER BY name ASC")
+    suspend fun getAllCollectionsList(): List<CollectionEntity>
+
     @Query("SELECT * FROM collections WHERE id = :id")
     suspend fun getCollectionById(id: Long): CollectionEntity?
 
@@ -18,6 +21,9 @@ interface CollectionDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCollection(collection: CollectionEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCollections(collections: List<CollectionEntity>)
 
     @Update
     suspend fun updateCollection(collection: CollectionEntity)

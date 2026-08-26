@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.akshar.wallpaperengine.data.local.entity.ScheduleEntity
 import com.akshar.wallpaperengine.theme.LocalThemeColors
 import com.akshar.wallpaperengine.ui.components.EmptyStateView
@@ -30,7 +31,6 @@ fun SchedulesScreen(
 ) {
     val theme = LocalThemeColors.current
     val uiState by viewModel.uiState.collectAsState()
-
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedScheduleForEdit by remember { mutableStateOf<ScheduleEntity?>(null) }
 
@@ -47,7 +47,7 @@ fun SchedulesScreen(
         ) {
             Text(
                 text = "AUTOMATION",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp)
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.sp)
             )
 
             IconButton(onClick = {
@@ -88,7 +88,7 @@ fun SchedulesScreen(
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = schedule.name.uppercase(),
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = theme.primary, letterSpacing = 1.dp)
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = theme.primary, letterSpacing = 1.sp)
                                     )
                                 }
 
@@ -210,7 +210,7 @@ fun SchedulesScreen(
                         )
                     }
 
-                    Text("SOURCE POOL", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
+                    Text("SOURCE POOL", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf("FAVORITES", "ALL", "COLLECTION").forEach { pool ->
                             FilterChip(
@@ -222,13 +222,26 @@ fun SchedulesScreen(
                         }
                     }
 
-                    Text("SELECTION MODE", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf("RANDOM", "SEQUENTIAL", "LRU").forEach { mode ->
+                    Text("SELECTION MODE", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp))
+                    androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(listOf("TIME_OF_DAY", "SMART_SHUFFLE", "WEIGHTED_FAVORITES", "NEVER_REPEAT", "VARIETY", "RANDOM", "LRU", "SEQUENTIAL").size) { idx ->
+                            val mode = listOf("TIME_OF_DAY", "SMART_SHUFFLE", "WEIGHTED_FAVORITES", "NEVER_REPEAT", "VARIETY", "RANDOM", "LRU", "SEQUENTIAL")[idx]
                             FilterChip(
                                 selected = sched.selectionMode == mode,
                                 onClick = { sched = sched.copy(selectionMode = mode) },
-                                label = { Text(mode) },
+                                label = { Text(mode.replace("_", " ")) },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = theme.primary.copy(alpha = 0.2f), selectedLabelColor = theme.primary)
+                            )
+                        }
+                    }
+
+                    Text("TRIGGER TYPE", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("TIME", "BATTERY_SAVER", "CHARGING", "DND").forEach { trigger ->
+                            FilterChip(
+                                selected = sched.triggerType == trigger,
+                                onClick = { sched = sched.copy(triggerType = trigger) },
+                                label = { Text(trigger.replace("_", " ")) },
                                 colors = FilterChipDefaults.filterChipColors(selectedContainerColor = theme.primary.copy(alpha = 0.2f), selectedLabelColor = theme.primary)
                             )
                         }

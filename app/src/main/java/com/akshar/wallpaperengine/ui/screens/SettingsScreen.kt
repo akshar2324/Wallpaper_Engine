@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.akshar.wallpaperengine.shader.ShaderIntensity
 import com.akshar.wallpaperengine.shader.ShaderStyle
 import com.akshar.wallpaperengine.theme.AppThemeId
@@ -27,6 +28,16 @@ fun SettingsScreen(
 ) {
     val theme = LocalThemeColors.current
     val prefs by viewModel.preferences.collectAsState()
+    val healthReport by viewModel.healthReport.collectAsState()
+    val analytics by viewModel.analytics.collectAsState()
+    val isScanning by viewModel.isScanning.collectAsState()
+
+    var showBackupDialog by remember { mutableStateOf(false) }
+    var backupJsonContent by remember { mutableStateOf("") }
+    var restoreInputJson by remember { mutableStateOf("") }
+    var showRestoreDialog by remember { mutableStateOf(false) }
+    var statusMessage by remember { mutableStateOf<String?>(null) }
+
     val scrollState = rememberScrollState()
 
     Column(
@@ -36,12 +47,213 @@ fun SettingsScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "SETTINGS",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.dp),
+            text = "SETTINGS & SYSTEM",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.sp),
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // Section 1: THEME PALETTES
+        // Section 1: LIBRARY HEALTH & STORAGE WIZARD
+        SettingsSectionHeader("LIBRARY HEALTH & STORAGE")
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = theme.background),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Storage Health", style = MaterialTheme.typography.bodyLarge.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold))
+                        val storageMb = healthReport?.let { String.format("%.1f MB", it.totalStorageBytes / (1024.0 * 1024.0)) } ?: "-- MB"
+                        Text("Total: $storageMb • ${healthReport?.totalWallpapers ?: "--"} Wallpapers", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                    }
+
+                    Button(
+                        onClick = { viewModel.scanLibraryHealth() },
+                        enabled = !isScanning,
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary.copy(alpha = 0.2f), contentColor = theme.primary),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(if (isScanning) "SCANNING..." else "SCAN")
+                    }
+                }
+
+                if (healthReport != null) {
+                    val report = healthReport!!
+                    HorizontalDivider(color = theme.borderGlow.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("Broken URIs: ${report.brokenWallpapers.size}", style = MaterialTheme.typography.bodyMedium.copy(color = if (report.brokenWallpapers.isNotEmpty()) Color(0xFFFF5252) else theme.textPrimary))
+                            Text("Missing/unreadable files", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                        }
+                        if (report.brokenWallpapers.isNotEmpty()) {
+                            OutlinedButton(
+                                onClick = {
+                                    viewModel.cleanBrokenWallpapers { count ->
+                                        statusMessage = "Purged $count broken wallpapers"
+                                    }
+                                },
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("CLEAN")
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("Duplicate Clusters: ${report.duplicateClusters.size}", style = MaterialTheme.typography.bodyMedium.copy(color = theme.textPrimary))
+                            Text("Identical/visually matching images", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                        }
+                        if (report.duplicateClusters.isNotEmpty()) {
+                            OutlinedButton(
+                                onClick = {
+                                    viewModel.cleanDuplicates { count ->
+                                        statusMessage = "Deduplicated $count wallpapers"
+                                    }
+                                },
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("RESOLVE")
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("Unused (>30d): ${report.unusedWallpapers.size}", style = MaterialTheme.typography.bodyMedium.copy(color = theme.textPrimary))
+                            Text("Non-favorite stale wallpapers", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                        }
+                        if (report.unusedWallpapers.isNotEmpty()) {
+                            OutlinedButton(
+                                onClick = {
+                                    viewModel.cleanUnusedWallpapers { count ->
+                                        statusMessage = "Purged $count unused wallpapers"
+                                    }
+                                },
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("CLEAN")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Section 2: ENGINE ANALYTICS & INSIGHTS
+        SettingsSectionHeader("ANALYTICS & USAGE INSIGHTS")
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = theme.background),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (analytics != null) {
+                    val stats = analytics!!
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column {
+                            Text("Total Rotations", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary))
+                            Text("${stats.totalRotations}", style = MaterialTheme.typography.titleLarge.copy(color = theme.primary, fontWeight = FontWeight.Bold))
+                        }
+                        Column {
+                            Text("OLED Dark Ratio", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary))
+                            Text("${stats.darkOledPercentage}%", style = MaterialTheme.typography.titleLarge.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold))
+                        }
+                        Column {
+                            Text("Avg Rating", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary))
+                            Text(String.format("%.1f ★", stats.averageRating), style = MaterialTheme.typography.titleLarge.copy(color = Color(0xFFFFD700), fontWeight = FontWeight.Bold))
+                        }
+                    }
+
+                    HorizontalDivider(color = theme.borderGlow.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 12.dp))
+
+                    Text("Rotation Source Breakdown", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("• Scheduled: ${stats.scheduledRotations}  • Context: ${stats.contextTriggerRotations}  • Manual: ${stats.manualRotations}", style = MaterialTheme.typography.bodySmall.copy(color = theme.textPrimary))
+
+                    if (stats.topStyles.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Top Styles: " + stats.topStyles.joinToString(", ") { "${it.first} (${it.second})" }, style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                    }
+                } else {
+                    Text("No usage analytics recorded yet.", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Section 3: BACKUP & RESTORE
+        SettingsSectionHeader("PORTABLE BACKUP & RESTORE")
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = theme.background),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Export or restore your full wallpaper library, collections, tags, schedules, and history.", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(
+                        onClick = {
+                            viewModel.exportBackup { json ->
+                                backupJsonContent = json
+                                showBackupDialog = true
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("EXPORT JSON")
+                    }
+
+                    OutlinedButton(
+                        onClick = { showRestoreDialog = true },
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("RESTORE JSON")
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Section 4: THEME PALETTES
         SettingsSectionHeader("THEME PALETTES")
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -57,7 +269,7 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Section 2: APPEARANCE & SHADERS
+        // Section 5: APPEARANCE & SHADERS
         SettingsSectionHeader("APPEARANCE & SHADERS")
 
         Card(
@@ -76,9 +288,9 @@ fun SettingsScreen(
                 )
 
                 if (prefs.shaderEnabled) {
-                    Divider(color = theme.borderGlow.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 12.dp))
+                    HorizontalDivider(color = theme.borderGlow.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 12.dp))
 
-                    Text("SHADER STYLE", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
+                    Text("SHADER STYLE", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp))
                     Spacer(modifier = Modifier.height(8.dp))
 
                     ShaderStyle.values().forEach { style ->
@@ -102,25 +314,31 @@ fun SettingsScreen(
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("SHADER INTENSITY", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp))
+                    Text("SHADER INTENSITY", style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp))
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ShaderIntensity.values().forEach { intensity ->
+                            val isSelected = prefs.shaderIntensity == intensity.id
                             FilterChip(
-                                selected = prefs.shaderIntensity == intensity.id,
+                                selected = isSelected,
                                 onClick = { viewModel.selectShaderIntensity(intensity.id) },
                                 label = { Text(intensity.name) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = theme.primary.copy(alpha = 0.2f),
                                     selectedLabelColor = theme.primary
                                 ),
-                                border = FilterChipDefaults.filterChipBorder(borderColor = theme.borderGlow.copy(alpha = 0.2f))
+                                border = FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = isSelected,
+                                    borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                                    selectedBorderColor = theme.primary
+                                )
                             )
                         }
                     }
                 }
 
-                Divider(color = theme.borderGlow.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(color = theme.borderGlow.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 12.dp))
 
                 SettingsToggleRow(
                     label = "Reduce Motion",
@@ -132,7 +350,7 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Section 3: PERFORMANCE
+        // Section 6: PERFORMANCE
         SettingsSectionHeader("PERFORMANCE PROFILE")
 
         Row(
@@ -140,8 +358,9 @@ fun SettingsScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf("BALANCED", "PERFORMANCE", "QUALITY").forEach { mode ->
+                val isSelected = prefs.performanceMode == mode
                 FilterChip(
-                    selected = prefs.performanceMode == mode,
+                    selected = isSelected,
                     onClick = { viewModel.selectPerformanceMode(mode) },
                     label = { Text(mode) },
                     modifier = Modifier.weight(1f),
@@ -149,14 +368,19 @@ fun SettingsScreen(
                         selectedContainerColor = theme.primary.copy(alpha = 0.2f),
                         selectedLabelColor = theme.primary
                     ),
-                    border = FilterChipDefaults.filterChipBorder(borderColor = theme.borderGlow.copy(alpha = 0.2f))
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isSelected,
+                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
+                        selectedBorderColor = theme.primary
+                    )
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Section 4: ABOUT
+        // Section 7: ABOUT
         SettingsSectionHeader("ABOUT ENGINE")
 
         Card(
@@ -175,6 +399,74 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
     }
+
+    // Export Dialog
+    if (showBackupDialog) {
+        AlertDialog(
+            onDismissRequest = { showBackupDialog = false },
+            title = { Text("Backup JSON Export", color = theme.textPrimary) },
+            text = {
+                Column {
+                    Text("Successfully generated JSON backup payload (${backupJsonContent.length} bytes).", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = backupJsonContent.take(500) + if (backupJsonContent.length > 500) "\n...[truncated]" else "",
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth().height(150.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showBackupDialog = false }) {
+                    Text("CLOSE")
+                }
+            }
+        )
+    }
+
+    // Restore Dialog
+    if (showRestoreDialog) {
+        AlertDialog(
+            onDismissRequest = { showRestoreDialog = false },
+            title = { Text("Restore JSON Backup", color = theme.textPrimary) },
+            text = {
+                Column {
+                    Text("Paste your backup JSON payload below to import wallpapers, collections, and schedules.", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = restoreInputJson,
+                        onValueChange = { restoreInputJson = it },
+                        placeholder = { Text("{\n  \"wallpapers\": [...]\n}") },
+                        modifier = Modifier.fillMaxWidth().height(150.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (restoreInputJson.isNotBlank()) {
+                            viewModel.restoreBackup(restoreInputJson) { summary ->
+                                if (summary != null) {
+                                    statusMessage = "Restored ${summary.wallpaperCount} wallpapers, ${summary.collectionCount} collections"
+                                } else {
+                                    statusMessage = "Failed to restore backup: Invalid JSON"
+                                }
+                                showRestoreDialog = false
+                            }
+                        }
+                    }
+                ) {
+                    Text("RESTORE")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRestoreDialog = false }) {
+                    Text("CANCEL")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -182,7 +474,7 @@ private fun SettingsSectionHeader(title: String) {
     val theme = LocalThemeColors.current
     Text(
         text = title,
-        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = theme.textSecondary, letterSpacing = 1.dp),
+        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = theme.textSecondary, letterSpacing = 1.sp),
         modifier = Modifier.padding(bottom = 8.dp)
     )
 }

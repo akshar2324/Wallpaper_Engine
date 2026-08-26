@@ -1,21 +1,46 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ProGuard & R8 Optimization Rules for Wallpaper Engine
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve line numbers and source files for clean stack traces
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Room Database & Entities
+-keep class androidx.room.RoomDatabase
+-dontwarn androidx.room.paging.**
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao interface * { *; }
+-keep class com.akshar.wallpaperengine.data.local.entity.** { *; }
+-keep class com.akshar.wallpaperengine.data.local.dao.** { *; }
+-keep class com.akshar.wallpaperengine.data.local.WallpaperDatabase_Impl { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# WorkManager Workers
+-keep class * extends androidx.work.ListenableWorker {
+    public <init>(android.content.Context, androidx.work.WorkerParameters);
+}
+-keep class com.akshar.wallpaperengine.workers.** { *; }
+
+# Live Wallpaper & System Services
+-keep class com.akshar.wallpaperengine.wallpaper.LiveWallpaperEngineService { *; }
+-keep class com.akshar.wallpaperengine.service.WallpaperTileService { *; }
+-keep class com.akshar.wallpaperengine.receiver.** { *; }
+
+# Coil Image Loader
+-keep class coil.** { *; }
+-dontwarn coil.**
+
+# Kotlin Coroutines & Flow
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembernames class kotlinx.** {
+    volatile <fields>;
+}
+
+# AndroidX DataStore
+-keep class androidx.datastore.** { *; }
+-keep class com.akshar.wallpaperengine.data.preferences.** { *; }
+
+# JSON Serialization Models
+-keep class com.akshar.wallpaperengine.data.backup.** { *; }
+-keep class com.akshar.wallpaperengine.data.analytics.** { *; }
+-keep class com.akshar.wallpaperengine.data.maintenance.** { *; }

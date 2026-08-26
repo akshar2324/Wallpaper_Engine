@@ -13,5 +13,6 @@ data class WallpaperHistoryEntity(
     val appliedAt: Long = System.currentTimeMillis(),
     val targetScreen: String = "HOME_AND_LOCK",
     val source: String = "MANUAL", // MANUAL, SCHEDULE
-    val scheduleId: Long? = null
+    val scheduleId: Long? = null,
+    val selectionReason: String? = null
 )

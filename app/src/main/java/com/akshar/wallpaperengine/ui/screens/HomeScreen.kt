@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.akshar.wallpaperengine.data.local.entity.WallpaperEntity
@@ -63,7 +64,7 @@ fun HomeScreen(
                 style = MaterialTheme.typography.titleMedium.copy(
                     color = theme.textPrimary,
                     fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.dp
+                    letterSpacing = 1.sp
                 )
             )
         }
@@ -120,7 +121,7 @@ fun HomeScreen(
                 ) {
                     Text(
                         text = "ACTIVE",
-                        style = MaterialTheme.typography.labelSmall.copy(color = theme.primary, letterSpacing = 2.dp)
+                        style = MaterialTheme.typography.labelSmall.copy(color = theme.primary, letterSpacing = 2.sp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -176,7 +177,7 @@ fun HomeScreen(
             Column(modifier = Modifier.padding(horizontal = 24.dp)) {
                 Text(
                     text = "UPCOMING ROTATION",
-                    style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp)
+                    style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -200,7 +201,7 @@ fun HomeScreen(
                 PaddingValues(horizontal = 24.dp).let { padding ->
                     Text(
                         text = "RECENTLY APPLIED",
-                        style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.dp),
+                        style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp),
                         modifier = Modifier.padding(padding)
                     )
                 }

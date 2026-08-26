@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface WallpaperDao {
 
-    @RawQuery\(observedEntities = \[WallpaperEntity::class, WallpaperCollectionCrossRef::class, WallpaperTagCrossRef::class\]\)
-    fun getWallpapersFiltered\(query: SupportSQLiteQuery\): Flow<List<WallpaperEntity>>
+    @RawQuery(observedEntities = [WallpaperEntity::class, WallpaperCollectionCrossRef::class, WallpaperTagCrossRef::class])
+    fun getWallpapersFiltered(query: SupportSQLiteQuery): Flow<List<WallpaperEntity>>
 
     @RawQuery
     suspend fun getSingleWallpaperId(query: SupportSQLiteQuery): Long?
@@ -65,12 +65,57 @@ interface WallpaperDao {
     @Query("UPDATE wallpapers SET lastUsed = :lastUsed WHERE id = :id")
     suspend fun updateLastUsed(id: Long, lastUsed: Long = System.currentTimeMillis())
 
+    @Query("UPDATE wallpapers SET rating = :rating WHERE id = :id")
+    suspend fun updateRating(id: Long, rating: Float)
+
+    @Query("UPDATE wallpapers SET skipCount = skipCount + 1, lastSkipped = :timestamp WHERE id = :id")
+    suspend fun recordSkip(id: Long, timestamp: Long = System.currentTimeMillis())
+
+    @Query("UPDATE wallpapers SET likeCount = likeCount + 1 WHERE id = :id")
+    suspend fun recordLike(id: Long)
+
+    @Query("UPDATE wallpapers SET viewCount = viewCount + 1 WHERE id = :id")
+    suspend fun recordView(id: Long)
+
+    @Query("UPDATE wallpapers SET dominantColor = :dominantColor, secondaryColor = :secondaryColor, brightness = :brightness, isDark = :isDark WHERE id = :id")
+    suspend fun updateWallpaperDna(id: Long, dominantColor: Int?, secondaryColor: Int?, brightness: Float, isDark: Boolean)
+
+    @Query("UPDATE wallpapers SET style = :style, mood = :mood WHERE id = :id")
+    suspend fun updateStyleAndMood(id: Long, style: String?, mood: String?)
+
+    @Query("UPDATE wallpapers SET isPrivate = :isPrivate WHERE id = :id")
+    suspend fun updatePrivacy(id: Long, isPrivate: Boolean)
+
+    @Query("UPDATE wallpapers SET contentHash = :hash WHERE id = :id")
+    suspend fun updateContentHash(id: Long, hash: String)
+
+    @Query("SELECT * FROM wallpapers WHERE contentHash = :hash AND id != :excludeId")
+    suspend fun getDuplicatesByHash(hash: String, excludeId: Long): List<WallpaperEntity>
+
+    @Query("SELECT * FROM wallpapers WHERE contentHash = '' OR contentHash IS NULL OR dominantColor IS NULL OR style IS NULL")
+    suspend fun getUnanalyzedWallpapers(): List<WallpaperEntity>
+
+    @Query("SELECT * FROM wallpapers WHERE dominantColor IS NULL OR brightness IS NULL")
+    suspend fun getWallpapersWithoutDna(): List<WallpaperEntity>
+
     // Junction queries
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertWallpaperCollectionCrossRef(crossRef: WallpaperCollectionCrossRef)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertWallpaperCollectionCrossRefs(crossRefs: List<WallpaperCollectionCrossRef>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertWallpaperTagCrossRef(crossRef: WallpaperTagCrossRef)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertWallpaperTagCrossRefs(crossRefs: List<WallpaperTagCrossRef>)
+
+    @Query("SELECT * FROM wallpaper_collection_cross_ref")
+    suspend fun getAllCollectionCrossRefs(): List<WallpaperCollectionCrossRef>
+
+    @Query("SELECT * FROM wallpaper_tag_cross_ref")
+    suspend fun getAllTagCrossRefs(): List<WallpaperTagCrossRef>
 
     @Query("DELETE FROM wallpaper_collection_cross_ref WHERE wallpaperId = :wallpaperId AND collectionId = :collectionId")
     suspend fun removeWallpaperFromCollection(wallpaperId: Long, collectionId: Long)
