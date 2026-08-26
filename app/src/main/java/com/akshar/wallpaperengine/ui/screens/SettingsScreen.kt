@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,7 +26,8 @@ import com.akshar.wallpaperengine.ui.viewmodel.SettingsViewModel
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToShaderStudio: () -> Unit = {}
 ) {
     val theme = LocalThemeColors.current
     val prefs by viewModel.preferences.collectAsState()
@@ -335,6 +338,19 @@ fun SettingsScreen(
                                 )
                             )
                         }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = onNavigateToShaderStudio,
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary.copy(alpha = 0.2f), contentColor = theme.primary),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("LAUNCH AGSL SHADER STUDIO", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
                 }
 

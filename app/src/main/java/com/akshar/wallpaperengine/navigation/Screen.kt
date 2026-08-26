@@ -19,6 +19,7 @@ sealed class Screen(
     object Explore : Screen("explore", "Explore", Icons.Filled.Explore, Icons.Outlined.Explore)
     object History : Screen("history", "History", Icons.Filled.History, Icons.Outlined.History)
     object Settings : Screen("settings", "Settings", Icons.Filled.Settings, Icons.Outlined.Settings)
+    object ShaderStudio : Screen("shader_studio", "Shader Studio", Icons.Filled.AutoAwesome, Icons.Outlined.AutoAwesome)
     object Detail : Screen("detail/{wallpaperId}", "Wallpaper", Icons.Filled.Image, Icons.Outlined.Image) {
         fun createRoute(wallpaperId: Long) = "detail/$wallpaperId"
     }

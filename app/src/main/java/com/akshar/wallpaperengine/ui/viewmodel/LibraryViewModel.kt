@@ -190,6 +190,36 @@ class LibraryViewModel(
         }
     }
 
+    fun importFolderTree(
+        context: Context,
+        treeUri: Uri,
+        onProgress: (Int, Int) -> Unit = { _, _ -> },
+        onComplete: (Int) -> Unit = {}
+    ) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val docFile = androidx.documentfile.provider.DocumentFile.fromTreeUri(context, treeUri)
+                val files = docFile?.listFiles()?.filter {
+                    it.isFile && (it.type?.startsWith("image/") == true ||
+                            it.name?.endsWith(".jpg", true) == true ||
+                            it.name?.endsWith(".jpeg", true) == true ||
+                            it.name?.endsWith(".png", true) == true ||
+                            it.name?.endsWith(".webp", true) == true)
+                } ?: emptyList()
+
+                var count = 0
+                files.forEachIndexed { index, file ->
+                    importImagesFromUris(context, listOf(file.uri))
+                    count++
+                    onProgress(index + 1, files.size)
+                }
+                onComplete(count)
+            } catch (e: Exception) {
+                onComplete(0)
+            }
+        }
+    }
+
     class Factory(
         private val wallpaperRepository: WallpaperRepository,
         private val collectionRepository: CollectionRepository,

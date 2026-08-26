@@ -101,6 +101,7 @@ dependencies {
   implementation(libs.androidx.room.runtime)
   implementation(libs.coil.compose)
   implementation("androidx.work:work-runtime-ktx:2.10.0")
+  implementation("androidx.documentfile:documentfile:1.0.1")
   implementation(libs.converter.moshi)
   implementation(libs.firebase.ai)
   // Uncomment to use Firestore:

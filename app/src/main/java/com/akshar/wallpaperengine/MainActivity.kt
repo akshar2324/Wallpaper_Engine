@@ -229,7 +229,16 @@ fun WallpaperEngineApp(
             }
 
             composable(Screen.Settings.route) {
-                SettingsScreen(viewModel = settingsViewModel)
+                SettingsScreen(
+                    viewModel = settingsViewModel,
+                    onNavigateToShaderStudio = { navController.navigate(Screen.ShaderStudio.route) }
+                )
+            }
+
+            composable(Screen.ShaderStudio.route) {
+                com.akshar.wallpaperengine.ui.screens.ShaderStudioScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
 
             composable(
