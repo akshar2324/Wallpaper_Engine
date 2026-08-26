@@ -48,6 +48,9 @@ class WallpaperEngineApplication : Application() {
     lateinit var backupRestoreEngine: com.akshar.wallpaperengine.data.backup.BackupRestoreEngine
         private set
 
+    lateinit var remoteWallpaperManager: com.akshar.wallpaperengine.data.remote.RemoteWallpaperManager
+        private set
+
     override fun onCreate() {
         super.onCreate()
 
@@ -76,6 +79,7 @@ class WallpaperEngineApplication : Application() {
             database.scheduleDao(),
             database.historyDao()
         )
+        remoteWallpaperManager = com.akshar.wallpaperengine.data.remote.RemoteWallpaperManager(this, database.wallpaperDao())
 
         try {
             wallpaperScheduler = WallpaperScheduler(this)

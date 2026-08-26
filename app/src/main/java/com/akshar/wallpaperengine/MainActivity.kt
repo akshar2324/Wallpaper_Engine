@@ -181,6 +181,15 @@ fun WallpaperEngineApp(
                 )
             }
 
+            composable(Screen.Explore.route) {
+                val exploreViewModel: com.akshar.wallpaperengine.ui.viewmodel.ExploreViewModel = viewModel(
+                    factory = com.akshar.wallpaperengine.ui.viewmodel.ExploreViewModel.Factory(
+                        app.remoteWallpaperManager
+                    )
+                )
+                com.akshar.wallpaperengine.ui.screens.ExploreScreen(viewModel = exploreViewModel)
+            }
+
             composable(Screen.Collections.route) {
                 val collectionsViewModel: CollectionsViewModel = viewModel(
                     factory = CollectionsViewModel.Factory(
