@@ -3,37 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wallpaper Engine ✦ Smart Android Wallpaper Automation</title>
+    <title>Wallpaper Engine ✦ Intelligent Android Wallpaper Automation</title>
     <meta name="description" content="A smart, local-first wallpaper automation engine for Android. Your wallpaper library, finally alive.">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Background Canvas Shader -->
+    <!-- Live AGSL-Style Background Shader Canvas -->
     <canvas id="bg-canvas"></canvas>
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
     <div class="grid-overlay"></div>
 
     <!-- Navigation Header -->
-    <header class="navbar">
+    <header class="navbar" id="navbar">
         <div class="nav-container">
             <a href="#" class="brand">
-                <span class="brand-icon">✦</span>
-                <span class="brand-text">WALLPAPER <span class="accent-text">ENGINE</span></span>
-                <span class="badge-pill">v1.0 ANDROID</span>
+                <div class="brand-logo-wrap">
+                    <span class="brand-icon">✦</span>
+                </div>
+                <div class="brand-name-group">
+                    <span class="brand-text">WALLPAPER <span class="accent-text">ENGINE</span></span>
+                    <span class="badge-pill">v1.0 ANDROID</span>
+                </div>
             </a>
             <nav class="nav-links">
-                <a href="#concept">Concept</a>
+                <a href="#concept">Pipeline</a>
                 <a href="#simulator">Smart Rotation</a>
                 <a href="#dna">Wallpaper DNA</a>
-                <a href="#features">Features</a>
+                <a href="#screens">UI Gallery</a>
                 <a href="#ecosystem">Ecosystem</a>
-                <a href="#tech">Tech Specs</a>
+                <a href="#features">Features</a>
+                <a href="#tech">Architecture</a>
             </nav>
             <div class="nav-actions">
-                <a href="https://github.com/akshar/wallEngine" target="_blank" class="btn btn-nav">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <a href="https://github.com/akshar2324/Wallpaper_Engine" target="_blank" class="btn btn-nav">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
                     </svg>
                     <span>GitHub</span>
@@ -49,90 +56,167 @@
                 <div class="hero-text-col">
                     <div class="hero-pill">
                         <span class="pulse-dot"></span>
-                        LOCAL-FIRST INTELLIGENT ANDROID ENGINE
+                        LOCAL-FIRST INTELLIGENT AUTOMATION
                     </div>
                     <h1 class="hero-title">
-                        Your wallpaper library, <span class="gradient-text">finally alive.</span>
+                        Wallpaper Engine
                     </h1>
-                    <p class="hero-subtitle">
-                        Wallpaper Engine is not just a gallery. It is an on-device intelligence platform that analyzes wallpaper DNA, learns your taste, and automatically rotates the right wallpaper based on solar time, battery state, charging, OLED purity, and repetition history.
+                    <h2 class="hero-subheadline">
+                        A smart, local-first wallpaper automation engine for Android.
+                    </h2>
+                    <p class="hero-tagline">
+                        Your wallpaper library, <span class="gradient-text">finally alive.</span>
                     </p>
+                    <p class="hero-desc">
+                        Stop suffering from static galleries and blind random shuffle. Wallpaper Engine extracts on-device visual DNA, learns your aesthetic taste, and rotates the perfect wallpaper matching solar time, battery level, charging state, and repetition history.
+                    </p>
+
                     <div class="hero-cta-group">
-                        <a href="https://github.com/akshar/wallEngine" target="_blank" class="btn btn-primary">
+                        <a href="https://github.com/akshar2324/Wallpaper_Engine" target="_blank" class="btn btn-primary btn-glow">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
                             <span>View on GitHub</span>
                             <span class="btn-arrow">→</span>
                         </a>
                         <a href="#simulator" class="btn btn-secondary">
-                            <span>Explore Live Simulator</span>
+                            <span>Interactive Simulator</span>
                         </a>
                     </div>
+
                     <div class="hero-metric-row">
                         <div class="metric-item">
                             <span class="metric-val">100%</span>
-                            <span class="metric-lbl">On-Device & Private</span>
+                            <span class="metric-lbl">Local & Private</span>
                         </div>
                         <div class="metric-divider"></div>
                         <div class="metric-item">
-                            <span class="metric-val">8</span>
+                            <span class="metric-val">8 Modes</span>
                             <span class="metric-lbl">Smart Strategies</span>
                         </div>
                         <div class="metric-divider"></div>
                         <div class="metric-item">
-                            <span class="metric-val">&lt; 10ms</span>
+                            <span class="metric-val">&lt; 8ms</span>
                             <span class="metric-lbl">DNA Analysis</span>
                         </div>
                     </div>
                 </div>
 
+                <!-- Cinematic 3D Floating Android Phone Mockup -->
                 <div class="hero-mockup-col">
-                    <div class="phone-frame">
-                        <div class="phone-speaker"></div>
-                        <div class="phone-camera"></div>
-                        <div class="phone-screen" id="hero-screen">
-                            <div class="screen-wallpaper" id="screen-wallpaper-bg"></div>
-                            <div class="screen-content">
-                                <div class="screen-clock" id="screen-clock">21:30</div>
-                                <div class="screen-date" id="screen-date">Wednesday, August 26</div>
-                                <div class="screen-widget-preview">
-                                    <div class="widget-top">
-                                        <span class="widget-title">WALLPAPER ENGINE ✦</span>
-                                        <span class="widget-badge" id="widget-strategy-badge">SMART SHUFFLE</span>
-                                    </div>
-                                    <div class="widget-name" id="hero-wall-title">Neon Cyber Skyline</div>
-                                    <div class="widget-sub" id="hero-wall-sub">Cyberpunk • Energetic • OLED Safe</div>
-                                    <div class="widget-btn-row">
-                                        <div class="widget-btn">★ FAVORITED</div>
-                                        <div class="widget-btn accent">NEXT ❯</div>
-                                    </div>
+                    <div class="phone-stage">
+                        <div class="phone-frame" id="hero-phone">
+                            <div class="phone-camera-island">
+                                <div class="camera-lens"></div>
+                            </div>
+                            <div class="phone-status-bar">
+                                <span class="status-time">21:30</span>
+                                <div class="status-icons">
+                                    <span>5G</span>
+                                    <span>✦</span>
+                                    <span>100%</span>
                                 </div>
                             </div>
+
+                            <div class="phone-screen" id="hero-screen">
+                                <!-- Dynamic Live Wallpaper Layer -->
+                                <div class="screen-wallpaper" id="screen-wallpaper-bg"></div>
+                                <div class="screen-overlay-scrim"></div>
+
+                                <!-- Screen Content -->
+                                <div class="screen-content">
+                                    <div class="screen-header-clock">
+                                        <div class="screen-time" id="screen-clock-time">21:30</div>
+                                        <div class="screen-date" id="screen-clock-date">Wednesday, Aug 26</div>
+                                    </div>
+
+                                    <!-- Live Interactive AppWidget Preview -->
+                                    <div class="screen-widget-glass">
+                                        <div class="widget-head">
+                                            <span class="widget-brand">WALLPAPER ENGINE ✦</span>
+                                            <span class="widget-badge" id="widget-strategy-badge">SMART SHUFFLE</span>
+                                        </div>
+                                        <div class="widget-title-text" id="hero-wall-title">Neon Cyber Skyline</div>
+                                        <div class="widget-meta-text" id="hero-wall-sub">Cyberpunk • Energetic • OLED 84%</div>
+                                        
+                                        <div class="widget-action-bar">
+                                            <div class="widget-action-btn" id="hero-widget-star">★ STARRED</div>
+                                            <div class="widget-action-btn accent" id="hero-widget-next">NEXT ❯</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Android Navigation Bar Pill -->
+                                <div class="phone-nav-bar"></div>
+                            </div>
+                            <div class="phone-glass-glare"></div>
                         </div>
-                        <div class="phone-glare"></div>
+
+                        <!-- Floating Live DNA Indicator Cards -->
+                        <div class="floating-dna-badge badge-top-right">
+                            <div class="dna-dot violet"></div>
+                            <div class="dna-badge-text">
+                                <span class="badge-sub">SOLAR PROFILE</span>
+                                <span class="badge-val">Golden Hour 19:42</span>
+                            </div>
+                        </div>
+
+                        <div class="floating-dna-badge badge-bottom-left">
+                            <div class="dna-dot emerald"></div>
+                            <div class="dna-badge-text">
+                                <span class="badge-sub">OLED BLACK FLOOR</span>
+                                <span class="badge-val">#000000 (88% Crushed)</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Problem Section -->
+        <!-- Problem Section: The Passive Wallpaper Crisis -->
         <section class="problem-section">
             <div class="container">
-                <div class="section-badge">THE PROBLEM</div>
-                <h2 class="section-title">Traditional wallpaper galleries are <span class="gradient-red">passive and repetitive.</span></h2>
-                <div class="problem-grid">
+                <div class="section-center-head">
+                    <div class="section-badge">THE PASSIVE DILEMMA</div>
+                    <h2 class="section-title">Your wallpapers deserve <span class="gradient-red">more than dumb shuffle.</span></h2>
+                    <p class="section-sub">Traditional wallpaper apps leave your collection passive, repetitive, and disconnected from your device context.</p>
+                </div>
+
+                <div class="problem-cards-grid">
                     <div class="glass-card problem-card">
-                        <div class="card-icon red">✕</div>
+                        <div class="problem-icon red">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                        </div>
                         <h3>Dumb Random Rotation</h3>
-                        <p>Standard apps just pick random files, blinding you with 100% bright white wallpapers at 2 AM or draining battery on AMOLED displays.</p>
+                        <p>Standard randomizers blind you with 100% white backgrounds at 2 AM or drain your battery during OLED power saving mode.</p>
                     </div>
+
                     <div class="glass-card problem-card">
-                        <div class="card-icon red">✕</div>
+                        <div class="problem-icon red">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            </svg>
+                        </div>
                         <h3>Forgotten Libraries</h3>
-                        <p>Users collect hundreds of wallpapers but end up seeing the same few repeated while the best images remain buried forever.</p>
+                        <p>You collect hundreds of high-res artworks, but end up seeing the same few repeated over and over while 90% of your library sits dormant.</p>
                     </div>
+
                     <div class="glass-card problem-card">
-                        <div class="card-icon red">✕</div>
+                        <div class="problem-icon red">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
                         <h3>Cloud Bloat & Telemetry</h3>
-                        <p>Modern apps require cloud logins, track user habits, and inject ads just to change an image on your home screen.</p>
+                        <p>Most wallpaper apps require cloud accounts, track personal preferences, and bombard you with intrusive ads just to set a wallpaper.</p>
                     </div>
                 </div>
             </div>
@@ -141,39 +225,67 @@
         <!-- Core Concept Pipeline -->
         <section id="concept" class="concept-section">
             <div class="container">
-                <div class="section-badge">CORE ARCHITECTURE</div>
-                <h2 class="section-title">The 6-Step Engine Pipeline</h2>
-                <p class="section-sub">A seamless flow transforming raw images into responsive, intelligent home screen experiences.</p>
-                <div class="pipeline-grid">
-                    <div class="pipeline-step active">
-                        <div class="step-num">01</div>
-                        <h3>Import</h3>
-                        <p>Bring in any local collection, storage URI, or curated drop with zero cloud lock-in.</p>
-                    </div>
-                    <div class="pipeline-step">
-                        <div class="step-num">02</div>
-                        <h3>Understand</h3>
-                        <p>Extract DNA: luminance, dominant & secondary color histograms, OLED black floor, and styles.</p>
-                    </div>
-                    <div class="pipeline-step">
-                        <div class="step-num">03</div>
-                        <h3>Organize</h3>
-                        <p>Automatic multi-tag search, color filtering, smart collections, and visual duplicate clustering.</p>
-                    </div>
-                    <div class="pipeline-step">
-                        <div class="step-num">04</div>
-                        <h3>Learn</h3>
-                        <p>Tracks favorites, skips, user ratings, view durations, and recency decay curves.</p>
-                    </div>
-                    <div class="pipeline-step">
-                        <div class="step-num">05</div>
-                        <h3>Select</h3>
-                        <p>Calculates dynamic taste scores using 8 mathematical selection strategies instead of random luck.</p>
-                    </div>
-                    <div class="pipeline-step">
-                        <div class="step-num">06</div>
-                        <h3>Adapt</h3>
-                        <p>Reacts dynamically to NOAA sunrise/sunset, battery saver OLED mode, charging status, and DND.</p>
+                <div class="section-center-head">
+                    <div class="section-badge">CORE PRODUCT IDEA</div>
+                    <h2 class="section-title">The 6-Step Engine Pipeline</h2>
+                    <p class="section-sub">A closed-loop on-device intelligence architecture turning raw images into responsive living wallpapers.</p>
+                </div>
+
+                <div class="pipeline-flow-wrapper">
+                    <div class="pipeline-cards-row">
+                        <!-- Step 1: Import -->
+                        <div class="glass-card pipeline-card active" data-step="1">
+                            <div class="pipeline-num">01</div>
+                            <div class="pipeline-icon">📥</div>
+                            <h3>Import</h3>
+                            <p>Bring in any local directory, content URI, or curated pack with zero cloud lock-in.</p>
+                            <div class="pipeline-tag">Zero Telemetry</div>
+                        </div>
+
+                        <!-- Step 2: Understand -->
+                        <div class="glass-card pipeline-card" data-step="2">
+                            <div class="pipeline-num">02</div>
+                            <div class="pipeline-icon">🧬</div>
+                            <h3>Understand</h3>
+                            <p>Extracts dominant/secondary colors, luminance, OLED purity %, and style/mood tags in &lt;8ms.</p>
+                            <div class="pipeline-tag">Visual DNA</div>
+                        </div>
+
+                        <!-- Step 3: Organize -->
+                        <div class="glass-card pipeline-card" data-step="3">
+                            <div class="pipeline-num">03</div>
+                            <div class="pipeline-icon">🗂️</div>
+                            <h3>Organize</h3>
+                            <p>Dynamic smart filters, 64-bit DCT perceptual hash duplicate clustering, and multi-tag search.</p>
+                            <div class="pipeline-tag">Smart Collections</div>
+                        </div>
+
+                        <!-- Step 4: Learn -->
+                        <div class="glass-card pipeline-card" data-step="4">
+                            <div class="pipeline-num">04</div>
+                            <div class="pipeline-icon">🧠</div>
+                            <h3>Learn</h3>
+                            <p>Tracks favorites, explicit skips, view time decay curves, and 5-star rating weights over time.</p>
+                            <div class="pipeline-tag">Taste Profile</div>
+                        </div>
+
+                        <!-- Step 5: Select -->
+                        <div class="glass-card pipeline-card" data-step="5">
+                            <div class="pipeline-num">05</div>
+                            <div class="pipeline-icon">🎯</div>
+                            <h3>Select</h3>
+                            <p>Calculates dynamic SQLite scoring query combining favorites, ratings, and anti-repetition variety.</p>
+                            <div class="pipeline-tag">8 Strategies</div>
+                        </div>
+
+                        <!-- Step 6: Adapt -->
+                        <div class="glass-card pipeline-card" data-step="6">
+                            <div class="pipeline-num">06</div>
+                            <div class="pipeline-icon">⚡</div>
+                            <h3>Adapt</h3>
+                            <p>Automates shifts on NOAA sunrise/sunset, battery saver trigger, AC charging, and DND states.</p>
+                            <div class="pipeline-tag">Context-Aware</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -182,186 +294,458 @@
         <!-- Interactive Smart Rotation Simulator -->
         <section id="simulator" class="simulator-section">
             <div class="container">
-                <div class="section-badge">LIVE INTERACTIVE ENGINE</div>
-                <h2 class="section-title">Experience Smart Rotation</h2>
-                <p class="section-sub">Every wallpaper switch gets a verified mathematical explanation.</p>
+                <div class="section-center-head">
+                    <div class="section-badge">INTERACTIVE DEMO</div>
+                    <h2 class="section-title">Test the Smart Rotation Engine</h2>
+                    <p class="section-sub">Switch strategies in real time to see how Wallpaper Engine scores wallpapers and computes selection reasons.</p>
+                </div>
 
-                <div class="simulator-box glass-card">
-                    <div class="sim-controls">
-                        <div class="sim-label">SELECT ENGINE STRATEGY:</div>
-                        <div class="strategy-chips" id="strategy-chips">
-                            <button class="strat-chip active" data-strat="SMART_SHUFFLE">Smart Shuffle</button>
-                            <button class="strat-chip" data-strat="TIME_OF_DAY">Solar Time of Day</button>
-                            <button class="strat-chip" data-strat="BATTERY_SAVER">OLED Battery Saver</button>
-                            <button class="strat-chip" data-strat="VARIETY">Variety Mode</button>
-                            <button class="strat-chip" data-strat="WEIGHTED_FAVORITES">Weighted Favorites</button>
-                            <button class="strat-chip" data-strat="NEVER_REPEAT">Never Repeat</button>
-                        </div>
-                    </div>
-
-                    <div class="sim-display">
-                        <div class="sim-wallpaper-card" id="sim-wall-card">
-                            <div class="sim-img-wrapper" id="sim-img-bg"></div>
-                            <div class="sim-card-info">
-                                <div class="sim-title" id="sim-title">Cyberpunk Void 2077</div>
-                                <div class="sim-tags" id="sim-tags">Cyberpunk • Energetic • 4.8★</div>
-                            </div>
-                        </div>
-
-                        <div class="sim-audit-log">
-                            <div class="audit-header">ENGINE SELECTION AUDIT LOG</div>
-                            <div class="audit-reason" id="sim-reason">
-                                "Score 8.74: High favorite affinity (+3.0), decayed recency bonus (+2.1), vibrant evening palette matched."
-                            </div>
-                            <div class="audit-metrics" id="sim-metrics">
-                                <div class="metric-pill"><span>Luminance:</span> <strong id="sim-lum">0.18</strong></div>
-                                <div class="metric-pill"><span>OLED Black:</span> <strong id="sim-oled">82%</strong></div>
-                                <div class="metric-pill"><span>Rating:</span> <strong id="sim-rate">4.8★</strong></div>
-                                <div class="metric-pill"><span>Priority:</span> <strong id="sim-prio">CRITICAL</strong></div>
-                            </div>
-                            <button class="btn btn-primary btn-sm" id="btn-sim-rotate">
-                                <span>Simulate Next Rotation</span>
-                                <span>↻</span>
+                <div class="simulator-console glass-card">
+                    <!-- Controls Bar -->
+                    <div class="sim-header">
+                        <span class="sim-header-label">ACTIVE ROTATION STRATEGY:</span>
+                        <div class="strategy-selector-row" id="strategy-chips">
+                            <button class="strat-btn active" data-strat="SMART_SHUFFLE">
+                                <span class="strat-icon">✦</span> Smart Shuffle
+                            </button>
+                            <button class="strat-btn" data-strat="TIME_OF_DAY">
+                                <span class="strat-icon">☀️</span> Solar Time of Day
+                            </button>
+                            <button class="strat-btn" data-strat="BATTERY_SAVER">
+                                <span class="strat-icon">🔋</span> OLED Battery Saver
+                            </button>
+                            <button class="strat-btn" data-strat="VARIETY">
+                                <span class="strat-icon">🎨</span> Variety Mode
+                            </button>
+                            <button class="strat-btn" data-strat="WEIGHTED_FAVORITES">
+                                <span class="strat-icon">⭐</span> Weighted Favorites
+                            </button>
+                            <button class="strat-btn" data-strat="NEVER_REPEAT">
+                                <span class="strat-icon">🔄</span> Never Repeat
                             </button>
                         </div>
                     </div>
+
+                    <!-- Simulator Stage -->
+                    <div class="sim-body-grid">
+                        <!-- Live Wallpaper Preview Card -->
+                        <div class="sim-card-col">
+                            <div class="sim-wallpaper-frame" id="sim-wall-card">
+                                <div class="sim-wall-visual" id="sim-img-bg"></div>
+                                <div class="sim-wall-scrim">
+                                    <div class="sim-wall-name" id="sim-title">Cyberpunk Obsidian Grid</div>
+                                    <div class="sim-wall-tags" id="sim-tags">Cyberpunk • Energetic • 4.9★</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Engine Audit Log -->
+                        <div class="sim-log-col">
+                            <div class="audit-log-box">
+                                <div class="audit-log-head">
+                                    <div class="log-indicator">
+                                        <span class="log-dot"></span>
+                                        <span>ENGINE VERIFIED AUDIT LOG</span>
+                                    </div>
+                                    <span class="log-timestamp" id="sim-timestamp">0.008s</span>
+                                </div>
+
+                                <div class="audit-explanation" id="sim-reason">
+                                    "Score 9.12: High favorite weighting (+3.0), non-repeated color hash, optimal evening luminance matched."
+                                </div>
+
+                                <div class="audit-metric-pills">
+                                    <div class="log-pill">
+                                        <span class="lbl">Luminance</span>
+                                        <strong class="val" id="sim-lum">0.19</strong>
+                                    </div>
+                                    <div class="log-pill">
+                                        <span class="lbl">OLED Black Floor</span>
+                                        <strong class="val cyan" id="sim-oled">84%</strong>
+                                    </div>
+                                    <div class="log-pill">
+                                        <span class="lbl">Taste Rating</span>
+                                        <strong class="val gold" id="sim-rate">4.9★</strong>
+                                    </div>
+                                    <div class="log-pill">
+                                        <span class="lbl">Priority</span>
+                                        <strong class="val violet" id="sim-prio">CRITICAL</strong>
+                                    </div>
+                                </div>
+
+                                <div class="audit-actions">
+                                    <button class="btn btn-primary" id="btn-sim-rotate">
+                                        <span>Trigger Next Wallpaper Rotation</span>
+                                        <span class="btn-rotate-icon">↻</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Wallpaper DNA Showcase -->
+        <!-- Wallpaper DNA & On-Device AI -->
         <section id="dna" class="dna-section">
             <div class="container">
-                <div class="section-badge">ON-DEVICE AI</div>
-                <h2 class="section-title">Wallpaper DNA & Visual Intelligence</h2>
-                <p class="section-sub">Extracting rich metadata in under 10ms with zero network footprint.</p>
+                <div class="section-center-head">
+                    <div class="section-badge">ON-DEVICE VISUAL INTELLIGENCE</div>
+                    <h2 class="section-title">Deep Wallpaper DNA Extraction</h2>
+                    <p class="section-sub">Every imported wallpaper is analyzed locally with low-RAM downsampled histograms in &lt;8ms.</p>
+                </div>
 
-                <div class="dna-showcase-grid">
-                    <div class="glass-card dna-feature-card">
-                        <div class="dna-icon">🎨</div>
-                        <h3>Color & Luminance Extraction</h3>
-                        <p>Calculates exact dominant & secondary RGB hex values, luminance brightness index (0.0 to 1.0), and true dark mode flags.</p>
+                <div class="dna-grid-layout">
+                    <!-- Left Interactive DNA Card -->
+                    <div class="glass-card dna-inspector-card">
+                        <div class="dna-inspector-header">
+                            <div class="dna-avatar-thumb"></div>
+                            <div class="dna-thumb-info">
+                                <h3>Obsidian Twilight Nebula</h3>
+                                <span>3840 × 2160 • 4.2 MB • JPEG</span>
+                            </div>
+                            <span class="dna-chip-badge">ANALYZED</span>
+                        </div>
+
+                        <div class="dna-metric-bars">
+                            <div class="metric-bar-group">
+                                <div class="bar-label-row">
+                                    <span>Luminance Brightness</span>
+                                    <strong>0.18 (Dark Optimal)</strong>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width: 18%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="metric-bar-group">
+                                <div class="bar-label-row">
+                                    <span>OLED Black Purity (#000000)</span>
+                                    <strong class="cyan">88% True Black</strong>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill cyan" style="width: 88%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="metric-bar-group">
+                                <div class="bar-label-row">
+                                    <span>User Taste Affinity</span>
+                                    <strong class="violet">94% Favorite Match</strong>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill violet" style="width: 94%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dna-swatches-section">
+                            <span class="swatch-title">DOMINANT & SECONDARY COLORS:</span>
+                            <div class="swatches-row">
+                                <div class="color-swatch-box" style="background: #0B0A14;">
+                                    <span>#0B0A14</span>
+                                </div>
+                                <div class="color-swatch-box" style="background: #7C3AED;">
+                                    <span>#7C3AED</span>
+                                </div>
+                                <div class="color-swatch-box" style="background: #06B6D4;">
+                                    <span>#06B6D4</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dna-tags-section">
+                            <span class="swatch-title">INFERRED STYLE & MOOD TAGS:</span>
+                            <div class="dna-tags-list">
+                                <span class="tag-pill">Cyberpunk</span>
+                                <span class="tag-pill">Sci-Fi</span>
+                                <span class="tag-pill">Mysterious</span>
+                                <span class="tag-pill">Ethereal</span>
+                                <span class="tag-pill">OLED Pure</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="glass-card dna-feature-card">
-                        <div class="dna-icon">⚡</div>
-                        <h3>OLED Purity & Darkener</h3>
-                        <p>Detects pixel black ratios and provides pure black floor crushing (<span class="code">#000000</span>) to maximize battery longevity on AMOLED screens.</p>
-                    </div>
-                    <div class="glass-card dna-feature-card">
-                        <div class="dna-icon">🏷️</div>
-                        <h3>Style & Mood Tagging</h3>
-                        <p>Classifies edge density, saturation, and contrast into recognized genres (Cyberpunk, Nature, Minimalist, Sci-Fi, Anime, Abstract) and moods.</p>
-                    </div>
-                    <div class="glass-card dna-feature-card">
-                        <div class="dna-icon">🔍</div>
-                        <h3>64-bit DCT Perceptual Hash</h3>
-                        <p>Identifies exact and near-duplicates regardless of compression, resizing, or cropping using Hamming distance matrix calculation.</p>
+
+                    <!-- Right DNA Feature Highlights -->
+                    <div class="dna-features-column">
+                        <div class="glass-card dna-info-tile">
+                            <div class="tile-icon violet">🎨</div>
+                            <div>
+                                <h4>Downsampled Color Quantization</h4>
+                                <p>Analyzes 64×64 downsampled byte streams using 5-bit color quantization to extract dominant chromatic palettes in milliseconds.</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card dna-info-tile">
+                            <div class="tile-icon emerald">⚡</div>
+                            <div>
+                                <h4>OLED Black Floor Crusher</h4>
+                                <p>Maps near-black shadow gradients directly to pure <span class="code">#000000</span>, turning off display pixels and extending battery life on AMOLED screens.</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card dna-info-tile">
+                            <div class="tile-icon cyan">🔍</div>
+                            <div>
+                                <h4>64-bit DCT Perceptual Hashing</h4>
+                                <p>Identifies exact and visually similar duplicates with scale and compression invariance, grouping duplicate clusters effortlessly.</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card dna-info-tile">
+                            <div class="tile-icon magenta">🧠</div>
+                            <div>
+                                <h4>AI Style & Mood Classifier</h4>
+                                <p>Calculates edge density, saturation, and contrast ratios to classify wallpapers into genres with structured tag recommendations.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Feature Grid (All 11 Phases) -->
-        <section id="features" class="features-section">
+        <!-- UI Preview Gallery Carousel (Interactive App Screens) -->
+        <section id="screens" class="screens-section">
             <div class="container">
-                <div class="section-badge">POWERHOUSE CAPABILITIES</div>
-                <h2 class="section-title">Engineered for Android Power Users</h2>
-                <div class="features-grid">
-                    <div class="glass-card feature-tile">
-                        <div class="tile-icon">🌊</div>
-                        <h4>AGSL Live Shader Engine</h4>
-                        <p>Fluid GPU runtime shaders (Nebula, Aurora, Cyber Grid, Energy Flow, Void, Sakura Petals) with touch ripple physics.</p>
+                <div class="section-center-head">
+                    <div class="section-badge">INTERACTIVE UI PREVIEWS</div>
+                    <h2 class="section-title">Designed for Modern Android</h2>
+                    <p class="section-sub">Explore the actual high-fidelity user interface crafted with Jetpack Compose and Material 3.</p>
+
+                    <!-- Screen Switcher Tabs -->
+                    <div class="screen-tab-bar" id="screen-tabs">
+                        <button class="screen-tab active" data-screen="HOME">Home Dashboard</button>
+                        <button class="screen-tab" data-screen="LIBRARY">Library & Filters</button>
+                        <button class="screen-tab" data-screen="DNA">DNA Detail Card</button>
+                        <button class="screen-tab" data-screen="SCHEDULES">Schedules & Solar</button>
+                        <button class="screen-tab" data-screen="EDITOR">On-Device Editor</button>
+                        <button class="screen-tab" data-screen="ANALYTICS">Health & Analytics</button>
                     </div>
-                    <div class="glass-card feature-tile">
-                        <div class="tile-icon">☀️</div>
-                        <h4>NOAA Solar Calculator</h4>
-                        <p>Astronomical solar equations dynamically adjusting wallpapers for Dawn, Morning, Golden Hour, Twilight, and Midnight.</p>
-                    </div>
-                    <div class="glass-card feature-tile">
-                        <div class="tile-icon">🔋</div>
-                        <h4>Context Hardware Triggers</h4>
-                        <p>Automated responses for Battery Saver activation, AC power connection, and Do Not Disturb state shifts.</p>
-                    </div>
-                    <div class="glass-card feature-tile">
-                        <div class="tile-icon">🛠️</div>
-                        <h4>Library Health Wizard</h4>
-                        <p>Scans broken URIs, detects low-res files, cleans stale wallpapers, and resolves duplicate clusters automatically.</p>
-                    </div>
-                    <div class="glass-card feature-tile">
-                        <div class="tile-icon">📊</div>
-                        <h4>Usage Insights Dashboard</h4>
-                        <p>Analytics visualizing rotation source breakdowns, OLED dark percentages, top tags, and favorite distributions.</p>
-                    </div>
-                    <div class="glass-card feature-tile">
-                        <div class="tile-icon">📦</div>
-                        <h4>Portable JSON Backup/Restore</h4>
-                        <p>Zero-dependency portable JSON export and import for all wallpapers, collections, tags, schedules, and history.</p>
-                    </div>
-                    <div class="glass-card feature-tile">
-                        <div class="tile-icon">✂️</div>
-                        <h4>On-Device Image Editor</h4>
-                        <p>Non-destructive crop, contrast, brightness, saturation, vignette, and OLED black floor crusher.</p>
-                    </div>
-                    <div class="glass-card feature-tile">
-                        <div class="tile-icon">🌐</div>
-                        <h4>Curated Online Drops</h4>
-                        <p>Explore weekly online curated categories (AMOLED, Cyberpunk, Nature, Anime) with 1-tap download and instant DNA profiling.</p>
+                </div>
+
+                <!-- Showcase Phone Frame -->
+                <div class="screens-stage">
+                    <div class="showcase-phone-mockup">
+                        <div class="mockup-bezel">
+                            <div class="mockup-screen-canvas" id="mockup-screen-canvas">
+                                <!-- Dynamic Mockup Screen Content -->
+                                <div class="mock-screen-view" id="mock-view-home">
+                                    <div class="mock-top-bar">
+                                        <span class="mock-app-title">WALLPAPER ENGINE</span>
+                                        <span class="mock-status-pill">✦ ACTIVE</span>
+                                    </div>
+                                    <div class="mock-hero-preview">
+                                        <div class="mock-hero-img"></div>
+                                        <div class="mock-hero-overlay">
+                                            <div class="mock-wall-title">Neon Cyber City 2077</div>
+                                            <div class="mock-wall-meta">Applied • 4.9★ • Smart Shuffle</div>
+                                        </div>
+                                    </div>
+                                    <div class="mock-section-label">QUICK ROTATION MODES</div>
+                                    <div class="mock-grid-modes">
+                                        <div class="mock-mode-chip active">✦ Smart Shuffle</div>
+                                        <div class="mock-mode-chip">☀️ Solar Dawn</div>
+                                        <div class="mock-mode-chip">🔋 OLED Saver</div>
+                                        <div class="mock-mode-chip">🎨 Variety</div>
+                                    </div>
+                                    <div class="mock-action-btn">ROTATE NOW ❯</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Android Ecosystem Section -->
+        <!-- Android Ecosystem Section (Visual Mockups) -->
         <section id="ecosystem" class="ecosystem-section">
             <div class="container">
-                <div class="section-badge">DEEP ANDROID INTEGRATION</div>
-                <h2 class="section-title">Integrated Across the Android OS</h2>
-                <div class="eco-grid">
-                    <div class="glass-card eco-card">
-                        <div class="eco-badge">APP WIDGET</div>
-                        <h3>Interactive Home Screen Widget</h3>
-                        <p>Resizable widget displaying the live active wallpaper title, style badge, and instant "★ STAR" / "NEXT ❯" shuffle buttons.</p>
+                <div class="section-center-head">
+                    <div class="section-badge">SYSTEM INTEGRATIONS</div>
+                    <h2 class="section-title">Deep Android Ecosystem Interop</h2>
+                    <p class="section-sub">Controlled directly from your home screen, notification shade, and quick settings.</p>
+                </div>
+
+                <div class="ecosystem-visual-grid">
+                    <!-- Widget Preview Card -->
+                    <div class="glass-card eco-mock-card">
+                        <div class="eco-mock-badge">HOME SCREEN WIDGET</div>
+                        <h3>Interactive AppWidget</h3>
+                        <p>Change wallpapers and star favorites directly from your launcher without opening the application.</p>
+                        
+                        <div class="sim-widget-preview-box">
+                            <div class="widget-head-row">
+                                <span>WALLPAPER ENGINE ✦</span>
+                                <span class="widget-live-tag">ACTIVE</span>
+                            </div>
+                            <div class="widget-title-preview">Obsidian Cyber Nexus</div>
+                            <div class="widget-sub-preview">Cyberpunk • Vibrant • Solar Matched</div>
+                            <div class="widget-btn-group">
+                                <div class="widget-mini-btn">★ STAR</div>
+                                <div class="widget-mini-btn accent">NEXT ❯</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="glass-card eco-card">
-                        <div class="eco-badge">QUICK SETTINGS</div>
-                        <h3>Quick Settings Tile</h3>
-                        <p>One-tap quick rotation tile in Android's notification shade for instantaneous wallpaper changes from anywhere.</p>
+
+                    <!-- Quick Settings Tile Card -->
+                    <div class="glass-card eco-mock-card">
+                        <div class="eco-mock-badge">QUICK SETTINGS</div>
+                        <h3>Notification Shade Tile</h3>
+                        <p>Access single-tap wallpaper rotation from anywhere in the OS via Android's Quick Settings tile.</p>
+                        
+                        <div class="qs-tile-preview-box">
+                            <div class="qs-tile-circle active">
+                                <span>✦</span>
+                            </div>
+                            <div class="qs-tile-text">
+                                <strong>Next Wallpaper</strong>
+                                <span>Tap to rotate</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="glass-card eco-card">
-                        <div class="eco-badge">NOTIFICATIONS</div>
-                        <h3>Actionable Notifications</h3>
-                        <p>Rotation notifications with direct "SKIP NEXT" and "★ FAVORITE" broadcast actions without opening the app.</p>
+
+                    <!-- Action Notification Card -->
+                    <div class="glass-card eco-mock-card">
+                        <div class="eco-mock-badge">ACTIONABLE NOTIFICATIONS</div>
+                        <h3>Rotation Controls</h3>
+                        <p>Interactive notification alerts featuring immediate Skip and Favorite broadcast intents.</p>
+                        
+                        <div class="notif-preview-box">
+                            <div class="notif-head">
+                                <span>Wallpaper Engine</span>
+                                <span>Just now</span>
+                            </div>
+                            <div class="notif-title">Wallpaper Applied: Ethereal Aurora</div>
+                            <div class="notif-body">Selected by NOAA Solar Dusk Profile</div>
+                            <div class="notif-chips-row">
+                                <div class="notif-chip">SKIP NEXT</div>
+                                <div class="notif-chip">★ FAVORITE</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Technical Stack -->
+        <!-- Powerhouse Features Grid -->
+        <section id="features" class="features-section">
+            <div class="container">
+                <div class="section-center-head">
+                    <div class="section-badge">FULL FEATURE SUITE</div>
+                    <h2 class="section-title">Engineered for Android Enthusiasts</h2>
+                    <p class="section-sub">Over 20+ dedicated capabilities designed around performance, privacy, and visual delight.</p>
+                </div>
+
+                <div class="features-mosaic-grid">
+                    <div class="glass-card feature-box">
+                        <div class="feature-box-icon">🌊</div>
+                        <h4>AGSL Live Shader Engine</h4>
+                        <p>GPU runtime shaders with interactive touch wave ripples and frame pacing for minimal battery drain.</p>
+                    </div>
+
+                    <div class="glass-card feature-box">
+                        <div class="feature-box-icon">☀️</div>
+                        <h4>NOAA Solar Calculator</h4>
+                        <p>Astronomical position formulas calculating Dawn, Sunrise, Solar Noon, Sunset, and Twilight.</p>
+                    </div>
+
+                    <div class="glass-card feature-box">
+                        <div class="feature-box-icon">🔋</div>
+                        <h4>Hardware Context Triggers</h4>
+                        <p>Broadcast receiver adapting wallpapers on Battery Saver, AC charger connect, and DND transitions.</p>
+                    </div>
+
+                    <div class="glass-card feature-box">
+                        <div class="feature-box-icon">🛠️</div>
+                        <h4>Library Health Wizard</h4>
+                        <p>Detects broken URIs, identifies low-res files, and purges stale wallpapers to reclaim storage.</p>
+                    </div>
+
+                    <div class="glass-card feature-box">
+                        <div class="feature-box-icon">📊</div>
+                        <h4>Usage Statistics Dashboard</h4>
+                        <p>Real-time analytics aggregating rotation triggers, OLED dark ratios, and top aesthetic styles.</p>
+                    </div>
+
+                    <div class="glass-card feature-box">
+                        <div class="feature-box-icon">📦</div>
+                        <h4>Portable JSON Backup/Restore</h4>
+                        <p>Zero-dependency library backup export and restore covering all relations, schedules, and preferences.</p>
+                    </div>
+
+                    <div class="glass-card feature-box">
+                        <div class="feature-box-icon">✂️</div>
+                        <h4>On-Device Image Editor</h4>
+                        <p>Non-destructive crop, contrast, brightness, saturation, vignette, and pure black floor crushing.</p>
+                    </div>
+
+                    <div class="glass-card feature-box">
+                        <div class="feature-box-icon">🌐</div>
+                        <h4>Curated Online Drops</h4>
+                        <p>Weekly curated feeds across AMOLED, Cyberpunk, Nature, Anime, and Minimalist categories.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
         <section id="tech" class="tech-section">
             <div class="container">
-                <div class="section-badge">MODERN ARCHITECTURE</div>
-                <h2 class="section-title">Built with Pure Modern Android</h2>
-                <div class="tech-badges-row">
-                    <div class="tech-pill">Kotlin 2.2</div>
-                    <div class="tech-pill">Jetpack Compose</div>
-                    <div class="tech-pill">Room DB v6</div>
-                    <div class="tech-pill">AGSL Shaders</div>
-                    <div class="tech-pill">WorkManager</div>
-                    <div class="tech-pill">Coil Image Loader</div>
-                    <div class="tech-pill">DataStore</div>
-                    <div class="tech-pill">Clean MVI / Flow</div>
+                <div class="section-center-head">
+                    <div class="section-badge">TECHNICAL SPECIFICATIONS</div>
+                    <h2 class="section-title">Built with Pure Modern Android</h2>
+                    <p class="section-sub">100% Kotlin with Clean Architecture, Reactive Flows, and Local Room Persistence.</p>
+                </div>
+
+                <div class="tech-grid">
+                    <div class="tech-card glass-card">
+                        <span class="tech-badge">LANGUAGE</span>
+                        <h3>Kotlin 2.2</h3>
+                        <p>Modern Kotlin Coroutines, StateFlow, and immutable models for zero race conditions.</p>
+                    </div>
+                    <div class="tech-card glass-card">
+                        <span class="tech-badge">UI TOOLKIT</span>
+                        <h3>Jetpack Compose</h3>
+                        <p>100% Declarative Compose UI with Material 3 theming and hardware-accelerated animations.</p>
+                    </div>
+                    <div class="tech-card glass-card">
+                        <span class="tech-badge">DATABASE</span>
+                        <h3>Room Database v6</h3>
+                        <p>Indexed SQLite dynamic scoring engine with automated migration pathways (v2 to v6).</p>
+                    </div>
+                    <div class="tech-card glass-card">
+                        <span class="tech-badge">GPU SHADERS</span>
+                        <h3>AGSL RuntimeShader</h3>
+                        <p>High-performance Android 13+ GPU shader language rendering live ambient cosmic waves.</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Final CTA -->
+        <!-- Local-First Privacy -->
+        <section class="privacy-section">
+            <div class="container">
+                <div class="privacy-box glass-card">
+                    <div class="privacy-icon">🛡️</div>
+                    <h2>Local-First Visual Intelligence</h2>
+                    <p>Your wallpaper taste stays strictly on your device. Every image analysis, perceptual hash, and taste scoring calculation runs locally with zero telemetry, zero trackers, and zero cloud lock-in.</p>
+                    <div class="privacy-metrics">
+                        <span>✓ 100% On-Device</span>
+                        <span>✓ Zero Cloud Dependencies</span>
+                        <span>✓ Fully Open Source</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final Call to Action -->
         <section class="cta-section">
             <div class="container">
-                <div class="cta-box glass-card">
-                    <h2 class="cta-title">Build a wallpaper library that <span class="gradient-text">moves with you.</span></h2>
-                    <p class="cta-sub">Open-source, local-first, and designed for Android power users.</p>
-                    <div class="cta-btn-group">
-                        <a href="https://github.com/akshar/wallEngine" target="_blank" class="btn btn-primary btn-large">
+                <div class="cta-banner glass-card">
+                    <h2 class="cta-heading">Build a wallpaper library that <span class="gradient-text">moves with you.</span></h2>
+                    <p class="cta-desc">Open-source, intelligent, and designed for Android power users.</p>
+                    <div class="cta-action-row">
+                        <a href="https://github.com/akshar2324/Wallpaper_Engine" target="_blank" class="btn btn-primary btn-large btn-glow">
                             <span>Get Started on GitHub</span>
                             <span class="btn-arrow">→</span>
                         </a>
@@ -373,12 +757,23 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="container footer-content">
-            <div class="footer-brand">
-                <span class="brand-icon">✦</span>
-                <span>WALLPAPER ENGINE</span>
+        <div class="container footer-layout">
+            <div class="footer-left">
+                <div class="brand">
+                    <span class="brand-icon">✦</span>
+                    <span class="brand-text">WALLPAPER <span class="accent-text">ENGINE</span></span>
+                </div>
+                <p>A smart, local-first wallpaper automation engine for Android.</p>
             </div>
-            <p class="footer-copy">© 2026 Wallpaper Engine. Open Source Android Project. Built with Antigravity.</p>
+            <div class="footer-right">
+                <a href="https://github.com/akshar2324/Wallpaper_Engine" target="_blank">GitHub Repository</a>
+                <a href="#concept">Pipeline</a>
+                <a href="#simulator">Simulator</a>
+                <a href="#dna">DNA Engine</a>
+            </div>
+        </div>
+        <div class="container footer-bottom">
+            <span>© 2026 Wallpaper Engine. Open-source under Apache 2.0. Built with Antigravity.</span>
         </div>
     </footer>
 
