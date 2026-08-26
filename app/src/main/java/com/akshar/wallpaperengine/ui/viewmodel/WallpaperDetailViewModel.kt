@@ -157,6 +157,55 @@ class WallpaperDetailViewModel(
         }
     }
 
+    fun saveEditedWallpaper(
+        context: android.content.Context,
+        params: com.akshar.wallpaperengine.data.editor.EditorParameters,
+        onComplete: (Boolean) -> Unit
+    ) {
+        val current = _uiState.value.wallpaper ?: return
+        viewModelScope.launch {
+            try {
+                val uri = android.net.Uri.parse(current.uri)
+                val stream = if (current.uri.startsWith("asset:///")) {
+                    context.assets.open(current.uri.removePrefix("asset:///"))
+                } else if (current.uri.startsWith("file://")) {
+                    java.io.File(uri.path ?: "").inputStream()
+                } else {
+                    context.contentResolver.openInputStream(uri)
+                }
+
+                if (stream == null) {
+                    onComplete(false)
+                    return@launch
+                }
+
+                val bitmap = android.graphics.BitmapFactory.decodeStream(stream)
+                stream.close()
+
+                if (bitmap == null) {
+                    onComplete(false)
+                    return@launch
+                }
+
+                val edited = com.akshar.wallpaperengine.data.editor.WallpaperEditorProcessor.applyEditsToBitmap(bitmap, params)
+                val (savedUri, fileSize) = com.akshar.wallpaperengine.data.editor.WallpaperEditorProcessor.saveEditedWallpaper(context, edited, current.title)
+
+                val editedEntity = WallpaperEntity(
+                    uri = savedUri.toString(),
+                    title = "${current.title} (Edited)",
+                    fileSize = fileSize,
+                    mimeType = "image/jpeg",
+                    width = edited.width,
+                    height = edited.height
+                )
+                wallpaperRepository.importWallpaper(editedEntity)
+                onComplete(true)
+            } catch (e: Exception) {
+                onComplete(false)
+            }
+        }
+    }
+
     class Factory(
         private val wallpaperId: Long,
         private val wallpaperRepository: WallpaperRepository,
