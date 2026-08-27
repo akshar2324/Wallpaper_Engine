@@ -3,7 +3,7 @@ package com.akshar.wallpaperengine.theme
 import androidx.compose.ui.graphics.Color
 
 enum class AppThemeId(val id: String, val displayName: String, val description: String) {
-    ABYSS("abyss", "Abyss", "Dark anime & cyberpunk deep void with electric purple accents"),
+    ABYSS("abyss", "Aura", "OLED black with restrained electric lime accents"),
     NEON_VIOLET("neon_violet", "Neon Violet", "Energetic futuristic neon with vivid violet & magenta highlights"),
     MIDNIGHT("midnight", "Midnight", "Ultra-dark, sleek, professional OLED black with subtle accents"),
     CRIMSON_NIGHT("crimson_night", "Crimson Night", "Cyberpunk villain aesthetic with deep crimson & obsidian tones"),
@@ -34,12 +34,12 @@ object ThemePalette {
         background = AppColors.BackgroundPrimary,
         surface = AppColors.SurfaceSecondary,
         surfaceVariant = AppColors.SurfaceElevated,
-        primary = AppColors.ElectricViolet,
+        primary = AppColors.ElectricLime,
         onPrimary = Color(0xFFFFFFFF),
         primaryContainer = AppColors.PrimaryContainer,
         onPrimaryContainer = Color(0xFFF3E8FF),
-        secondary = AppColors.MutedMagenta,
-        tertiary = Color(0xFF38BDF8),
+        secondary = AppColors.MutedLime,
+        tertiary = Color(0xFF8FA6B8),
         textPrimary = AppColors.TextPrimary,
         textSecondary = AppColors.TextSecondary,
         borderGlow = AppColors.BorderSubtle,

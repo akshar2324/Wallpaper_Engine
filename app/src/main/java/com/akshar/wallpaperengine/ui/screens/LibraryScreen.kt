@@ -214,58 +214,6 @@ fun LibraryScreen(
             }
         }
 
-        // Tags Bar
-        if (uiState.tags.isNotEmpty()) {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
-            ) {
-                item {
-                    val isSelected = uiState.filterOptions.tagId == null
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = { viewModel.selectTag(null) },
-                        label = { Text("ALL TAGS") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = theme.primary.copy(alpha = 0.2f),
-                            selectedLabelColor = theme.primary,
-                            containerColor = Color.Transparent,
-                            labelColor = theme.textSecondary
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = isSelected,
-                            borderColor = theme.borderGlow.copy(alpha = 0.2f),
-                            selectedBorderColor = theme.primary
-                        )
-                    )
-                }
-                items(uiState.tags, key = { it.id }) { tag ->
-                    val isSelected = uiState.filterOptions.tagId == tag.id
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = {
-                            if (isSelected) viewModel.selectTag(null)
-                            else viewModel.selectTag(tag.id)
-                        },
-                        label = { Text(tag.name.uppercase()) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = theme.primary.copy(alpha = 0.2f),
-                            selectedLabelColor = theme.primary,
-                            containerColor = Color.Transparent,
-                            labelColor = theme.textSecondary
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = isSelected,
-                            borderColor = theme.borderGlow.copy(alpha = 0.2f),
-                            selectedBorderColor = theme.primary
-                        )
-                    )
-                }
-            }
-        }
-
         // Batch Action Toolbar
         AnimatedVisibility(visible = uiState.isMultiSelectMode) {
             Row(
@@ -301,8 +249,8 @@ fun LibraryScreen(
         if (uiState.wallpapers.isNotEmpty()) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(uiState.gridDensity),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(uiState.wallpapers, key = { it.id }) { wallpaper ->

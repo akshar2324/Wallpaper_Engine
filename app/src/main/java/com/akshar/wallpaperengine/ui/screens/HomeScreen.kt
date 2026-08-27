@@ -1,35 +1,48 @@
 package com.akshar.wallpaperengine.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.akshar.wallpaperengine.data.local.entity.WallpaperEntity
 import com.akshar.wallpaperengine.theme.LocalThemeColors
 import com.akshar.wallpaperengine.ui.components.ProceduralWallpaperPreview
-import com.akshar.wallpaperengine.ui.components.WallpaperCard
 import com.akshar.wallpaperengine.ui.viewmodel.HomeViewModel
 
 @Composable
@@ -42,46 +55,36 @@ fun HomeScreen(
 ) {
     val theme = LocalThemeColors.current
     val uiState by viewModel.uiState.collectAsState()
-    val scrollState = rememberScrollState()
-    var showApplyQuickMenu by remember { mutableStateOf(false) }
+    val currentWallpaper = uiState.currentWallpaper
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(bottom = 24.dp)
+            .padding(horizontal = 20.dp)
     ) {
-        // Subtle Greeting
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Wallpaper Engine",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = theme.textPrimary,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-            )
-        }
+        AuraHeader()
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Hero Image - Current Wallpaper
-        val currentWallpaper = uiState.currentWallpaper
+        Text(
+            text = "Good evening, Akshar",
+            style = MaterialTheme.typography.headlineSmall.copy(
+                color = theme.textPrimary,
+                fontWeight = FontWeight.Medium
+            )
+        )
+        Text(
+            text = "Your space, on rotation",
+            style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary)
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .aspectRatio(9f / 16f) // Maintain phone aspect ratio for hero
+                .weight(1f)
                 .clip(RoundedCornerShape(16.dp))
-                .border(1.dp, theme.borderGlow.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                .clickable {
-                    if (currentWallpaper != null) {
-                        onNavigateToDetail(currentWallpaper.id)
-                    }
+                .clickable(enabled = currentWallpaper != null) {
+                    currentWallpaper?.let { onNavigateToDetail(it.id) }
                 }
         ) {
             if (currentWallpaper != null) {
@@ -96,187 +99,146 @@ fun HomeScreen(
                             .data(currentWallpaper.uri)
                             .crossfade(true)
                             .build(),
-                        contentDescription = "Current Wallpaper",
+                        contentDescription = "Current wallpaper: ${currentWallpaper.title}",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
 
-                // Overlay gradient for text readability
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
-                            androidx.compose.ui.graphics.Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Transparent, Color.Black.copy(alpha = 0.8f))
+                            Brush.verticalGradient(
+                                listOf(Color.Black.copy(alpha = 0.24f), Color.Transparent, Color.Black.copy(alpha = 0.74f))
                             )
                         )
                 )
 
-                // Hero Content Overlay
+                Text(
+                    text = "Active",
+                    style = MaterialTheme.typography.labelSmall.copy(color = Color.White),
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp)
+                        .background(Color.Black.copy(alpha = 0.54f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 5.dp)
+                )
+
+                IconButton(
+                    onClick = { viewModel.toggleFavorite(currentWallpaper) },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .background(Color.Black.copy(alpha = 0.42f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = if (currentWallpaper.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = "Toggle favorite",
+                        tint = if (currentWallpaper.isFavorite) theme.primary else Color.White
+                    )
+                }
+
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
-                        .padding(20.dp)
+                        .padding(16.dp)
                 ) {
-                    Text(
-                        text = "ACTIVE",
-                        style = MaterialTheme.typography.labelSmall.copy(color = theme.primary, letterSpacing = 2.sp)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = currentWallpaper.title,
-                        style = MaterialTheme.typography.headlineMedium.copy(color = Color.White)
+                        style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Medium)
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Button(
-                            onClick = { showApplyQuickMenu = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = theme.surface),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text("APPLY", style = MaterialTheme.typography.labelMedium.copy(color = theme.textPrimary))
-                        }
-
-                        IconButton(
-                            onClick = { viewModel.toggleFavorite(currentWallpaper) },
-                            modifier = Modifier
-                                .background(theme.surface.copy(alpha = 0.5f), CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = if (currentWallpaper.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                                contentDescription = "Favorite",
-                                tint = if (currentWallpaper.isFavorite) theme.primary else theme.textPrimary
-                            )
-                        }
-                    }
+                    Text(
+                        text = "${currentWallpaper.style ?: "Wallpaper"} · OLED · 4K",
+                        style = MaterialTheme.typography.labelMedium.copy(color = Color.White.copy(alpha = 0.72f))
+                    )
                 }
             } else {
-                // Empty state for Hero
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(theme.surfaceVariant),
-                    contentAlignment = Alignment.Center
+                        .background(theme.surface)
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Filled.Wallpaper, contentDescription = null, tint = theme.textSecondary, modifier = Modifier.size(48.dp))
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("No Wallpaper Active", style = MaterialTheme.typography.titleMedium.copy(color = theme.textSecondary))
-                    }
+                    Text("Your canvas is ready", style = MaterialTheme.typography.titleMedium.copy(color = theme.textPrimary))
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text("Choose a wallpaper to make it yours.", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Upcoming Schedule Strip
-        val upcoming = uiState.nextUpcomingSchedule
-        if (upcoming != null) {
-            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-                Text(
-                    text = "UPCOMING ROTATION",
-                    style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { onNavigateToSchedules() }
-                ) {
-                    Icon(Icons.Outlined.Schedule, contentDescription = null, tint = theme.primary, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "${upcoming.name} at ${String.format("%02d:%02d", upcoming.timeHour, upcoming.timeMinute)}",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = theme.textPrimary)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onNavigateToLibrary,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = theme.primary, contentColor = theme.onPrimary)
+        ) {
+            Icon(Icons.Filled.Shuffle, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.size(8.dp))
+            Text("Change wallpaper", fontWeight = FontWeight.SemiBold)
         }
+        Spacer(modifier = Modifier.height(14.dp))
 
-        // Recently Used Horizontal Carousel
-        if (uiState.recentlyUsed.isNotEmpty()) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                PaddingValues(horizontal = 24.dp).let { padding ->
-                    Text(
-                        text = "RECENTLY APPLIED",
-                        style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, letterSpacing = 1.sp),
-                        modifier = Modifier.padding(padding)
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(horizontal = 24.dp)
-                ) {
-                    items(uiState.recentlyUsed, key = { it.id }) { item ->
-                        WallpaperCard(
-                            wallpaper = item,
-                            onClick = { onNavigateToDetail(item.id) },
-                            onFavoriteToggle = { viewModel.toggleFavorite(item) },
-                            modifier = Modifier.width(110.dp) // Smaller width for recently used strip
-                        )
-                    }
+        val scheduleText = uiState.nextUpcomingSchedule?.let {
+            "Next change ${String.format("%02d:%02d", it.timeHour, it.timeMinute)}"
+        } ?: "Rotation ready"
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+                .clickable(onClick = onNavigateToSchedules),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(scheduleText, style = MaterialTheme.typography.labelMedium.copy(color = theme.textSecondary))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Rotation on", style = MaterialTheme.typography.labelMedium.copy(color = theme.textSecondary))
+                Spacer(modifier = Modifier.size(6.dp))
+                Canvas(modifier = Modifier.size(7.dp)) {
+                    drawCircle(theme.primary, radius = size.minDimension / 2f, center = Offset(size.width / 2f, size.height / 2f))
                 }
             }
         }
     }
+}
 
-    // Quick Apply Modal
-    if (showApplyQuickMenu && uiState.currentWallpaper != null) {
-        AlertDialog(
-            onDismissRequest = { showApplyQuickMenu = false },
-            title = { Text("Set Destination", style = MaterialTheme.typography.titleLarge.copy(color = theme.textPrimary)) },
-            text = { Text("Where would you like to apply this wallpaper?", style = MaterialTheme.typography.bodyMedium.copy(color = theme.textSecondary)) },
-            confirmButton = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            viewModel.applyWallpaperQuick(uiState.currentWallpaper!!, "HOME")
-                            showApplyQuickMenu = false
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = theme.surfaceVariant),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("HOME SCREEN", color = theme.textPrimary)
-                    }
-                    Button(
-                        onClick = {
-                            viewModel.applyWallpaperQuick(uiState.currentWallpaper!!, "LOCK")
-                            showApplyQuickMenu = false
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = theme.surfaceVariant),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("LOCK SCREEN", color = theme.textPrimary)
-                    }
-                    Button(
-                        onClick = {
-                            viewModel.applyWallpaperQuick(uiState.currentWallpaper!!, "HOME_AND_LOCK")
-                            showApplyQuickMenu = false
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("HOME & LOCK SCREEN", color = theme.onPrimary)
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showApplyQuickMenu = false }) {
-                    Text("CANCEL", color = theme.textSecondary)
-                }
-            },
-            containerColor = theme.surface,
-            shape = RoundedCornerShape(12.dp)
-        )
+@Composable
+private fun AuraHeader() {
+    val theme = LocalThemeColors.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 14.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Canvas(modifier = Modifier.size(22.dp)) {
+                drawArc(
+                    color = theme.primary,
+                    startAngle = 34f,
+                    sweepAngle = 274f,
+                    useCenter = false,
+                    style = Stroke(width = 2.dp.toPx())
+                )
+                drawCircle(theme.primary, radius = 2.2.dp.toPx(), center = Offset(size.width * 0.83f, size.height * 0.16f))
+            }
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = "AURA",
+                style = MaterialTheme.typography.titleSmall.copy(color = theme.textPrimary, fontWeight = FontWeight.Medium)
+            )
+        }
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .background(theme.surfaceVariant, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("A", style = MaterialTheme.typography.labelSmall.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold))
+        }
     }
 }

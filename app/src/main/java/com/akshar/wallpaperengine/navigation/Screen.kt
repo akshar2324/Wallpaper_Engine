@@ -15,7 +15,7 @@ sealed class Screen(
     object Home : Screen("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
     object Library : Screen("library", "Library", Icons.Filled.PhotoLibrary, Icons.Outlined.PhotoLibrary)
     object Collections : Screen("collections", "Collections", Icons.Filled.FolderSpecial, Icons.Outlined.FolderSpecial)
-    object Schedules : Screen("schedules", "Schedule", Icons.Filled.Schedule, Icons.Outlined.Schedule)
+    object Schedules : Screen("schedules", "Rotation", Icons.Filled.Schedule, Icons.Outlined.Schedule)
     object Explore : Screen("explore", "Explore", Icons.Filled.Explore, Icons.Outlined.Explore)
     object History : Screen("history", "History", Icons.Filled.History, Icons.Outlined.History)
     object Settings : Screen("settings", "Settings", Icons.Filled.Settings, Icons.Outlined.Settings)
@@ -30,7 +30,6 @@ val bottomNavScreens = listOf(
     Screen.Home,
     Screen.Library,
     Screen.Explore,
-    Screen.Collections,
     Screen.Schedules,
     Screen.Settings
 )

@@ -8,14 +8,14 @@ import androidx.compose.ui.graphics.Color
  */
 object AppColors {
     // Core Backgrounds
-    val BackgroundPrimary = Color(0xFF07070A)
-    val SurfaceSecondary = Color(0xFF101015)
-    val SurfaceElevated = Color(0xFF15151C)
+    val BackgroundPrimary = Color(0xFF050505)
+    val SurfaceSecondary = Color(0xFF111114)
+    val SurfaceElevated = Color(0xFF17171B)
     
     // Accents
-    val ElectricViolet = Color(0xFF9333EA)
-    val MutedMagenta = Color(0xFFD946EF)
-    val PrimaryContainer = Color(0xFF26103A)
+    val ElectricLime = Color(0xFFC8FF3D)
+    val MutedLime = Color(0xFF9FCB2B)
+    val PrimaryContainer = Color(0xFF263000)
     
     // Typography
     val TextPrimary = Color(0xFFF3F4F6)
