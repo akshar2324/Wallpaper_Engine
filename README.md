@@ -143,4 +143,11 @@ The next product-quality milestone is real-device profiling across a large image
 
 ## License
 
-This repository does not currently declare a license. Add one before distributing or accepting outside contributions.
+Released under the [MIT License](LICENSE).
+
+## Community and Security
+
+- [Contributing guide](CONTRIBUTING.md)
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [Changelog](CHANGELOG.md)
