@@ -373,12 +373,13 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            listOf("BALANCED", "PERFORMANCE", "QUALITY").forEach { mode ->
+            listOf("BALANCED", "PERF", "QUALITY").forEach { label ->
+                val mode = if (label == "PERF") "PERFORMANCE" else label
                 val isSelected = prefs.performanceMode == mode
                 FilterChip(
                     selected = isSelected,
                     onClick = { viewModel.selectPerformanceMode(mode) },
-                    label = { Text(mode) },
+                    label = { Text(label, maxLines = 1) },
                     modifier = Modifier.weight(1f),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = theme.primary.copy(alpha = 0.2f),

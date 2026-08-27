@@ -129,7 +129,7 @@ fun WallpaperDetailScreen(
                 .padding(bottom = 32.dp)
         ) {
             Text(
-                text = wallpaper.title,
+                text = wallpaperDisplayTitle(wallpaper.title),
                 style = MaterialTheme.typography.headlineMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Medium)
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -150,6 +150,25 @@ fun WallpaperDetailScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = { showApplyModal = true },
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Filled.Wallpaper, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("SET WALLPAPER", style = MaterialTheme.typography.labelLarge.copy(color = theme.onPrimary, fontWeight = FontWeight.Bold))
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            Text(
+                text = "DETAILS",
+                style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Wallpaper DNA Card Section
             WallpaperDnaCard(
@@ -251,15 +270,6 @@ fun WallpaperDetailScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Main Action Button
-            Button(
-                onClick = { showApplyModal = true },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = theme.primary),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("APPLY WALLPAPER", style = MaterialTheme.typography.labelLarge.copy(color = theme.onPrimary, fontWeight = FontWeight.Bold, letterSpacing = 1.sp))
-            }
         }
     }
 
@@ -390,6 +400,11 @@ fun WallpaperDetailScreen(
             shape = RoundedCornerShape(12.dp)
         )
     }
+}
+
+private fun wallpaperDisplayTitle(title: String): String {
+    val baseName = title.substringBeforeLast('.').replace('_', ' ').replace('-', ' ').trim()
+    return if (baseName.isNotBlank() && baseName.all(Char::isDigit)) "Wallpaper ${baseName.takeLast(4)}" else baseName.ifBlank { "Wallpaper" }
 }
 
 @Composable

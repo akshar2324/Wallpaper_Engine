@@ -87,7 +87,10 @@ fun ExploreScreen(viewModel: ExploreViewModel, modifier: Modifier = Modifier) {
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(bottom = 24.dp)
+            ) {
                 items(viewModel.categories.take(4)) { category ->
                     val selected = category.equals(selectedCategory, ignoreCase = true)
                     FilterChip(
@@ -109,9 +112,11 @@ fun ExploreScreen(viewModel: ExploreViewModel, modifier: Modifier = Modifier) {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(18.dp))
+        }
+
+        item(span = { GridItemSpan(maxLineSpan) }) {
             Text("Trending", style = MaterialTheme.typography.titleMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Medium))
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(10.dp))
         }
 
         items(wallpapers, key = { it.id }) { item ->

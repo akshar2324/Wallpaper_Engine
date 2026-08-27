@@ -11,7 +11,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 data class UserPreferences(
     val themeId: String = "abyss",
-    val shaderEnabled: Boolean = true,
+    val shaderEnabled: Boolean = false,
     val shaderIntensity: String = "MEDIUM",
     val shaderStyle: String = "THEME_DEFAULT",
     val reduceMotion: Boolean = false,
@@ -46,7 +46,7 @@ class UserPreferencesRepository(private val context: Context) {
     val userPreferencesFlow: Flow<UserPreferences> = context.dataStore.data.map { preferences ->
         UserPreferences(
             themeId = preferences[PreferenceKeys.THEME_ID] ?: "abyss",
-            shaderEnabled = preferences[PreferenceKeys.SHADER_ENABLED] ?: true,
+            shaderEnabled = preferences[PreferenceKeys.SHADER_ENABLED] ?: false,
             shaderIntensity = preferences[PreferenceKeys.SHADER_INTENSITY] ?: "MEDIUM",
             shaderStyle = preferences[PreferenceKeys.SHADER_STYLE] ?: "THEME_DEFAULT",
             reduceMotion = preferences[PreferenceKeys.REDUCE_MOTION] ?: false,

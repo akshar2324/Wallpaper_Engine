@@ -1,7 +1,9 @@
 package com.akshar.wallpaperengine.ui.viewmodel
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -155,25 +157,50 @@ class LibraryViewModel(
         }
     }
 
-    private suspend fun importImage(context: Context, uri: Uri) {
+    private suspend fun importImage(
+        context: Context,
+        uri: Uri,
+        useTreePermission: Boolean = false
+    ): Boolean {
         var finalUri = uri.toString()
-        try {
-            context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        } catch (_: Exception) {
+        val resolver = context.contentResolver
+        if (!useTreePermission) {
             try {
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    val fileName = "imported_${System.currentTimeMillis()}_${uri.lastPathSegment?.replace("/", "_") ?: "image"}.jpg"
-                    val file = java.io.File(context.filesDir, fileName)
-                    java.io.FileOutputStream(file).use { output -> input.copyTo(output) }
-                    finalUri = android.net.Uri.fromFile(file).toString()
-                }
+                resolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
             } catch (_: Exception) {
-                return
+                try {
+                    resolver.openInputStream(uri)?.use { input ->
+                        val fileName = "imported_${System.currentTimeMillis()}_${uri.lastPathSegment?.replace("/", "_") ?: "image"}.jpg"
+                        val file = java.io.File(context.filesDir, fileName)
+                        java.io.FileOutputStream(file).use { output -> input.copyTo(output) }
+                        finalUri = android.net.Uri.fromFile(file).toString()
+                    } ?: return false
+                } catch (_: Exception) {
+                    return false
+                }
             }
         }
 
-        val title = uri.lastPathSegment?.substringAfterLast('/') ?: "Imported Wallpaper"
-        wallpaperRepository.importWallpaper(WallpaperEntity(uri = finalUri, title = title, dateAdded = System.currentTimeMillis()))
+        val (displayName, fileSize) = readImageInfo(context, uri)
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+        val width = bounds.outWidth.takeIf { it > 0 } ?: 1080
+        val height = bounds.outHeight.takeIf { it > 0 } ?: 1920
+        val mimeType = resolver.getType(uri) ?: mimeTypeFromName(displayName)
+
+        wallpaperRepository.importWallpaper(
+            WallpaperEntity(
+                uri = finalUri,
+                title = displayTitle(displayName),
+                width = width,
+                height = height,
+                aspectRatio = width.toFloat() / height,
+                fileSize = fileSize,
+                mimeType = mimeType,
+                dateAdded = System.currentTimeMillis()
+            )
+        )
+        return true
     }
 
     fun importFolderTree(
@@ -189,8 +216,7 @@ class LibraryViewModel(
 
                 var count = 0
                 files.forEachIndexed { index, file ->
-                    importImage(context, file.uri)
-                    count++
+                    if (importImage(context, file.uri, useTreePermission = true)) count++
                     onProgress(index + 1, files.size)
                 }
                 onComplete(count)
@@ -208,9 +234,40 @@ class LibraryViewModel(
                         file.name?.endsWith(".jpg", true) == true ||
                         file.name?.endsWith(".jpeg", true) == true ||
                         file.name?.endsWith(".png", true) == true ||
-                        file.name?.endsWith(".webp", true) == true) -> listOf(file)
+                        file.name?.endsWith(".webp", true) == true ||
+                        file.name?.endsWith(".heic", true) == true ||
+                        file.name?.endsWith(".heif", true) == true) -> listOf(file)
                 else -> emptyList()
             }
+        }
+    }
+
+    private fun readImageInfo(context: Context, uri: Uri): Pair<String, Long> {
+        var name = uri.lastPathSegment?.substringAfterLast('/') ?: "Imported Wallpaper"
+        var size = 0L
+        context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)
+            ?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME).takeIf { it >= 0 }?.let { name = cursor.getString(it) ?: name }
+                    cursor.getColumnIndex(OpenableColumns.SIZE).takeIf { it >= 0 }?.let { size = cursor.getLong(it) }
+                }
+            }
+        return name to size
+    }
+
+    private fun mimeTypeFromName(name: String): String = when (name.substringAfterLast('.', "").lowercase()) {
+        "png" -> "image/png"
+        "webp" -> "image/webp"
+        "heic", "heif" -> "image/heic"
+        else -> "image/jpeg"
+    }
+
+    private fun displayTitle(name: String): String {
+        val baseName = name.substringBeforeLast('.').replace('_', ' ').replace('-', ' ').trim()
+        return when {
+            baseName.isBlank() -> "Imported Wallpaper"
+            baseName.all(Char::isDigit) -> "Wallpaper ${baseName.takeLast(4)}"
+            else -> baseName
         }
     }
 

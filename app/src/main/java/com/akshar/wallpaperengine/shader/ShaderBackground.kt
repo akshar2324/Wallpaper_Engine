@@ -111,14 +111,14 @@ fun AGSLShaderBackground(
 
             // Atmospheric noise/depth
             float d = length(uv - float2(0.5 * aspect, 0.2));
-            float colorAmt = smoothstep(1.0, 0.0, d) * 0.15 * intensity;
+            float colorAmt = smoothstep(1.0, 0.0, d) * 0.055 * intensity;
 
             // Extremely slow moving soft light
             float moveX = sin(time * 0.2 + uv.y * 2.0) * 0.2;
             float moveY = cos(time * 0.15 + uv.x * 1.5) * 0.2;
 
             float d2 = length(uv - float2(0.5 * aspect + moveX, 0.6 + moveY));
-            colorAmt += smoothstep(0.8, 0.0, d2) * 0.2 * intensity;
+            colorAmt += smoothstep(0.8, 0.0, d2) * 0.075 * intensity;
 
             half4 finalColor = mix(bgColor, primaryColor, colorAmt);
             return finalColor;
