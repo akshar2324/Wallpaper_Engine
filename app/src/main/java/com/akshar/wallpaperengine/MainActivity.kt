@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -81,57 +82,64 @@ fun WallpaperEngineApp(
     Scaffold(
         bottomBar = {
             if (currentRoute in bottomNavScreens.map { it.route }) {
-                NavigationBar(
-                    containerColor = theme.surface,
-                    contentColor = theme.primary,
-                    tonalElevation = 0.dp,
+                Box(
                     modifier = Modifier
-                        .border(
-                            width = 1.dp,
-                            color = Color.White.copy(alpha = 0.08f),
-                            shape = androidx.compose.ui.graphics.RectangleShape
-                        )
-                        .testTag("bottom_navigation_bar")
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
-                    bottomNavScreens.forEach { screen ->
-                        val selected = currentRoute == screen.route
-                        NavigationBarItem(
-                            icon = {
-                                Icon(
-                                    imageVector = if (selected) screen.iconSelected else screen.iconUnselected,
-                                    contentDescription = screen.title
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = screen.title,
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-                                    ),
-                                    maxLines = 1,
-                                    softWrap = false,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                                )
-                            },
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                    NavigationBar(
+                        containerColor = theme.surface.copy(alpha = 0.96f),
+                        contentColor = theme.primary,
+                        tonalElevation = 0.dp,
+                        modifier = Modifier
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(22.dp))
+                            .border(
+                                width = 1.dp,
+                                color = Color.White.copy(alpha = 0.10f),
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp)
+                            )
+                            .testTag("bottom_navigation_bar")
+                    ) {
+                        bottomNavScreens.forEach { screen ->
+                            val selected = currentRoute == screen.route
+                            NavigationBarItem(
+                                icon = {
+                                    Icon(
+                                        imageVector = if (selected) screen.iconSelected else screen.iconUnselected,
+                                        contentDescription = screen.title
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = screen.title,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                                        ),
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    )
+                                },
+                                selected = selected,
+                                onClick = {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = theme.primary,
-                                selectedTextColor = theme.primary,
-                                unselectedIconColor = theme.textSecondary,
-                                unselectedTextColor = theme.textSecondary,
-                                indicatorColor = theme.primary.copy(alpha = 0.15f)
-                            ),
-                            modifier = Modifier.testTag("nav_item_${screen.route}")
-                        )
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = theme.primary,
+                                    selectedTextColor = theme.primary,
+                                    unselectedIconColor = theme.textSecondary,
+                                    unselectedTextColor = theme.textSecondary,
+                                    indicatorColor = theme.primary.copy(alpha = 0.15f)
+                                ),
+                                modifier = Modifier.testTag("nav_item_${screen.route}")
+                            )
+                        }
                     }
                 }
             }
