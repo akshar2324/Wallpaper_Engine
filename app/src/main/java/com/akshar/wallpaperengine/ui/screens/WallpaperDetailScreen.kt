@@ -77,6 +77,7 @@ fun WallpaperDetailScreen(
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(wallpaper.uri)
+                        .size(1080)
                         .crossfade(true)
                         .build(),
                     contentDescription = wallpaper.title,

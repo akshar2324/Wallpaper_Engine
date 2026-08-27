@@ -97,6 +97,7 @@ fun HomeScreen(
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(currentWallpaper.uri)
+                            .size(1080)
                             .crossfade(true)
                             .build(),
                         contentDescription = "Current wallpaper: ${currentWallpaper.title}",
