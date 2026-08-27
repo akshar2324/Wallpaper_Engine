@@ -1,20 +1,19 @@
-# Wallpaper Engine Website
+# AURA Website
 
-This is the landing page for **Wallpaper Engine**, a smart, local-first wallpaper automation engine for Android.
+This folder is the GitHub Pages source for the AURA product site.
 
-## Tech Stack
-- Vanilla HTML5
-- CSS3 (Flexbox, Grid, CSS Variables, Animations)
-- Modern ES6 Modules JS (Canvas API for background, IntersectionObserver)
+The site is intentionally small and static: HTML, CSS, and JavaScript with locally committed image and motion assets. It mirrors the AURA Android design system with OLED black, restrained electric lime, and image-led interactions.
 
-## How to host on GitHub Pages
+## Local Preview
 
-1. Commit this `/website` directory (or its contents if moved to root/docs) to your repository.
-2. Go to your repository settings on GitHub.
-3. Navigate to **Pages** on the left sidebar.
-4. Under **Build and deployment**, select **Deploy from a branch**.
-5. Select the branch you want to deploy from (usually `main` or `master`).
-6. Select the folder (e.g., `/docs` if you copy these files there, or the root if you put the website files at the root of a branch like `gh-pages`).
-7. Click **Save**.
+```bash
+python3 -m http.server 4175 --directory docs
+```
 
-Your premium landing page will be live shortly!
+Open `http://localhost:4175` in a browser.
+
+## Deployment
+
+GitHub Pages should deploy this directory from the `main` branch. The published site is available at:
+
+https://akshar2324.github.io/Wallpaper_Engine/
