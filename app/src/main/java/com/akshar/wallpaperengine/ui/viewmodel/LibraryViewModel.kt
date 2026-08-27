@@ -150,44 +150,30 @@ class LibraryViewModel(
     }
 
     fun importImagesFromUris(context: Context, uris: List<Uri>) {
-        viewModelScope.launch {
-            uris.forEach { uri ->
-                var finalUri = uri.toString()
-                try {
-                    context.contentResolver.takePersistableUriPermission(
-                        uri,
-                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
-                } catch (e: Exception) {
-                    // Gracefully handle if persisted permission is unavailable (e.g. some third party providers)
-                    // Copy file to internal storage
-                    try {
-                        val inputStream = context.contentResolver.openInputStream(uri)
-                        if (inputStream != null) {
-                            val fileName = "imported_${System.currentTimeMillis()}_${uri.lastPathSegment?.replace("/", "_") ?: "image"}.jpg"
-                            val file = java.io.File(context.filesDir, fileName)
-                            val outputStream = java.io.FileOutputStream(file)
-                            inputStream.use { input ->
-                                outputStream.use { output ->
-                                    input.copyTo(output)
-                                }
-                            }
-                            finalUri = android.net.Uri.fromFile(file).toString()
-                        }
-                    } catch (ioException: Exception) {
-                        ioException.printStackTrace()
-                    }
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            uris.forEach { importImage(context, it) }
+        }
+    }
+
+    private suspend fun importImage(context: Context, uri: Uri) {
+        var finalUri = uri.toString()
+        try {
+            context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        } catch (_: Exception) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    val fileName = "imported_${System.currentTimeMillis()}_${uri.lastPathSegment?.replace("/", "_") ?: "image"}.jpg"
+                    val file = java.io.File(context.filesDir, fileName)
+                    java.io.FileOutputStream(file).use { output -> input.copyTo(output) }
+                    finalUri = android.net.Uri.fromFile(file).toString()
                 }
-                
-                val title = uri.lastPathSegment?.substringAfterLast('/') ?: "Imported Wallpaper"
-                val entity = WallpaperEntity(
-                    uri = finalUri,
-                    title = title,
-                    dateAdded = System.currentTimeMillis()
-                )
-                wallpaperRepository.importWallpaper(entity)
+            } catch (_: Exception) {
+                return
             }
         }
+
+        val title = uri.lastPathSegment?.substringAfterLast('/') ?: "Imported Wallpaper"
+        wallpaperRepository.importWallpaper(WallpaperEntity(uri = finalUri, title = title, dateAdded = System.currentTimeMillis()))
     }
 
     fun importFolderTree(
@@ -199,23 +185,31 @@ class LibraryViewModel(
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
                 val docFile = androidx.documentfile.provider.DocumentFile.fromTreeUri(context, treeUri)
-                val files = docFile?.listFiles()?.filter {
-                    it.isFile && (it.type?.startsWith("image/") == true ||
-                            it.name?.endsWith(".jpg", true) == true ||
-                            it.name?.endsWith(".jpeg", true) == true ||
-                            it.name?.endsWith(".png", true) == true ||
-                            it.name?.endsWith(".webp", true) == true)
-                } ?: emptyList()
+                val files = docFile?.let(::findImagesRecursively) ?: emptyList()
 
                 var count = 0
                 files.forEachIndexed { index, file ->
-                    importImagesFromUris(context, listOf(file.uri))
+                    importImage(context, file.uri)
                     count++
                     onProgress(index + 1, files.size)
                 }
                 onComplete(count)
             } catch (e: Exception) {
                 onComplete(0)
+            }
+        }
+    }
+
+    private fun findImagesRecursively(directory: androidx.documentfile.provider.DocumentFile): List<androidx.documentfile.provider.DocumentFile> {
+        return directory.listFiles().flatMap { file ->
+            when {
+                file.isDirectory -> findImagesRecursively(file)
+                file.isFile && (file.type?.startsWith("image/") == true ||
+                        file.name?.endsWith(".jpg", true) == true ||
+                        file.name?.endsWith(".jpeg", true) == true ||
+                        file.name?.endsWith(".png", true) == true ||
+                        file.name?.endsWith(".webp", true) == true) -> listOf(file)
+                else -> emptyList()
             }
         }
     }

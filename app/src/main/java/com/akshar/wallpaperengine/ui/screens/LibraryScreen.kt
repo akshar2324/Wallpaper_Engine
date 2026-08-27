@@ -49,12 +49,30 @@ fun LibraryScreen(
 
     var showFilterSheet by remember { mutableStateOf(false) }
     var showAddToCollectionDialog by remember { mutableStateOf(false) }
+    var showImportSheet by remember { mutableStateOf(false) }
 
     val pickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents(),
         onResult = { uris: List<Uri> ->
             if (uris.isNotEmpty()) {
                 viewModel.importImagesFromUris(context, uris)
+            }
+        }
+    )
+
+    val folderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+        onResult = { treeUri ->
+            if (treeUri != null) {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        treeUri,
+                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                } catch (_: SecurityException) {
+                    // The import falls back to the transient grant when a provider does not support persistence.
+                }
+                viewModel.importFolderTree(context, treeUri)
             }
         }
     )
@@ -89,7 +107,7 @@ fun LibraryScreen(
                 }
 
                 IconButton(
-                    onClick = { pickerLauncher.launch("image/*") },
+                    onClick = { showImportSheet = true },
                     modifier = Modifier.testTag("import_wallpaper_button")
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = "Import", tint = theme.primary)
@@ -277,9 +295,51 @@ fun LibraryScreen(
                 description = "Import wallpapers to build your collection.",
                 icon = Icons.Filled.PhotoLibrary,
                 buttonText = "IMPORT IMAGES",
-                onButtonClick = { pickerLauncher.launch("image/*") },
+                onButtonClick = { showImportSheet = true },
                 modifier = Modifier.fillMaxSize()
             )
+        }
+    }
+
+    if (showImportSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showImportSheet = false },
+            containerColor = theme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+            ) {
+                Text("Add wallpapers", style = MaterialTheme.typography.titleLarge.copy(color = theme.textPrimary, fontWeight = FontWeight.Medium))
+                Text("Import individual images or a complete folder.", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
+                Spacer(modifier = Modifier.height(20.dp))
+                ListItem(
+                    headlineContent = { Text("Select images", color = theme.textPrimary) },
+                    supportingContent = { Text("Choose one or more files", color = theme.textSecondary) },
+                    leadingContent = { Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = theme.primary) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable {
+                            showImportSheet = false
+                            pickerLauncher.launch("image/*")
+                        }
+                )
+                ListItem(
+                    headlineContent = { Text("Select folder", color = theme.textPrimary) },
+                    supportingContent = { Text("Import supported images, including nested folders", color = theme.textSecondary) },
+                    leadingContent = { Icon(Icons.Filled.FolderOpen, contentDescription = null, tint = theme.primary) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable {
+                            showImportSheet = false
+                            folderLauncher.launch(null)
+                        }
+                )
+                Spacer(modifier = Modifier.height(18.dp))
+            }
         }
     }
 
