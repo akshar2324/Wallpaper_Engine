@@ -65,10 +65,8 @@ fun WallpaperDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(380.dp)
-                .padding(16.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .border(1.dp, theme.borderGlow.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .height(440.dp)
+                .clip(RoundedCornerShape(20.dp))
         ) {
             if (wallpaper.isSample || wallpaper.uri.startsWith("sample_")) {
                 ProceduralWallpaperPreview(
@@ -96,7 +94,7 @@ fun WallpaperDetailScreen(
             ) {
                 IconButton(
                     onClick = onBack,
-                    modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                    modifier = Modifier.background(Color.Black.copy(alpha = 0.42f), CircleShape)
                 ) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                 }
@@ -104,7 +102,7 @@ fun WallpaperDetailScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconButton(
                         onClick = { viewModel.toggleFavorite() },
-                        modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        modifier = Modifier.background(Color.Black.copy(alpha = 0.42f), CircleShape)
                     ) {
                         Icon(
                             imageVector = if (wallpaper.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
@@ -114,7 +112,7 @@ fun WallpaperDetailScreen(
                     }
                     IconButton(
                         onClick = { showDeleteConfirm = true },
-                        modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        modifier = Modifier.background(Color.Black.copy(alpha = 0.42f), CircleShape)
                     ) {
                         Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = Color.White)
                     }
@@ -131,7 +129,7 @@ fun WallpaperDetailScreen(
         ) {
             Text(
                 text = wallpaper.title,
-                style = MaterialTheme.typography.headlineMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.headlineMedium.copy(color = theme.textPrimary, fontWeight = FontWeight.Medium)
             )
             Spacer(modifier = Modifier.height(8.dp))
 

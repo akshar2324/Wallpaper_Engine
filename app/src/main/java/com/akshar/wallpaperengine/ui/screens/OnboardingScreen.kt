@@ -54,7 +54,7 @@ fun OnboardingScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Welcome to Wallpaper Engine",
+                text = "Welcome to AURA",
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.ExtraBold,
                     color = theme.textPrimary,
@@ -83,7 +83,7 @@ fun OnboardingScreen(
             colors = ButtonDefaults.buttonColors(containerColor = theme.primary, contentColor = theme.onPrimary),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Enter Engine", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Enter AURA", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(Icons.Filled.ArrowForward, contentDescription = null)
         }

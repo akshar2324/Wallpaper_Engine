@@ -50,20 +50,20 @@ fun SettingsScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "SETTINGS & SYSTEM",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.sp),
+            text = "Settings",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium, color = theme.textPrimary),
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
         // Section 1: LIBRARY HEALTH & STORAGE WIZARD
-        SettingsSectionHeader("LIBRARY HEALTH & STORAGE")
+        SettingsSectionHeader("Library")
 
         Card(
-            colors = CardDefaults.cardColors(containerColor = theme.background),
+            colors = CardDefaults.cardColors(containerColor = theme.surface),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(
@@ -170,14 +170,14 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         // Section 2: ENGINE ANALYTICS & INSIGHTS
-        SettingsSectionHeader("ANALYTICS & USAGE INSIGHTS")
+        SettingsSectionHeader("Wallpaper")
 
         Card(
-            colors = CardDefaults.cardColors(containerColor = theme.background),
+            colors = CardDefaults.cardColors(containerColor = theme.surface),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 if (analytics != null) {
@@ -216,14 +216,14 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         // Section 3: BACKUP & RESTORE
-        SettingsSectionHeader("PORTABLE BACKUP & RESTORE")
+        SettingsSectionHeader("Backup")
 
         Card(
-            colors = CardDefaults.cardColors(containerColor = theme.background),
+            colors = CardDefaults.cardColors(containerColor = theme.surface),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                .border(1.dp, theme.borderGlow.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Export or restore your full wallpaper library, collections, tags, schedules, and history.", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
@@ -407,7 +407,7 @@ fun SettingsScreen(
                 .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Wallpaper Engine v1.0.0", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary))
+                Text("AURA v1.0.0", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary))
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("High-performance OLED wallpaper rotation engine built with Jetpack Compose, Room & WorkManager.", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
             }

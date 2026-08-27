@@ -75,7 +75,7 @@
 
         <receiver
             android:name=".widget.WallpaperAppWidgetProvider"
-            android:label="Wallpaper Engine Quick Control"
+            android:label="AURA Quick Control"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

@@ -23,6 +23,32 @@ import com.akshar.wallpaperengine.theme.LocalThemeColors
 import com.akshar.wallpaperengine.ui.components.EmptyStateView
 import com.akshar.wallpaperengine.ui.viewmodel.SchedulesViewModel
 
+@Composable
+private fun RotationPreview(label: String, time: String, color: Color) {
+    val theme = LocalThemeColors.current
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(width = 88.dp, height = 112.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(theme.surfaceVariant)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        androidx.compose.ui.graphics.Brush.radialGradient(
+                            colors = listOf(color.copy(alpha = 0.7f), Color.Transparent)
+                        )
+                    )
+            )
+        }
+        Spacer(modifier = Modifier.height(7.dp))
+        Text(label, style = MaterialTheme.typography.labelMedium.copy(color = theme.textPrimary))
+        Text(time, style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary))
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SchedulesScreen(
@@ -33,6 +59,7 @@ fun SchedulesScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedScheduleForEdit by remember { mutableStateOf<ScheduleEntity?>(null) }
+    var rotationMode by remember { mutableStateOf("Smart") }
 
     Column(
         modifier = modifier
@@ -41,14 +68,18 @@ fun SchedulesScreen(
     ) {
         // Header
         Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "AUTOMATION",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary, letterSpacing = 1.sp)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Rotation",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium, color = theme.textPrimary)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(modifier = Modifier.size(7.dp).background(theme.primary, RoundedCornerShape(50)))
+            }
 
             IconButton(onClick = {
                 selectedScheduleForEdit = ScheduleEntity(name = "Daily Rotation", timeHour = 8, timeMinute = 0)
@@ -58,17 +89,70 @@ fun SchedulesScreen(
             }
         }
 
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(theme.surface, RoundedCornerShape(12.dp))
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            listOf("Smart", "Shuffle", "Schedule").forEach { mode ->
+                val selected = rotationMode == mode
+                Text(
+                    text = mode,
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(if (selected) theme.surfaceVariant else Color.Transparent, RoundedCornerShape(9.dp))
+                        .clickable { rotationMode = mode }
+                        .padding(vertical = 10.dp),
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        color = if (selected) theme.textPrimary else theme.textSecondary,
+                        fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
+                    ),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RotationPreview("Current", "Now", theme.primary)
+            Text("42 min", style = MaterialTheme.typography.labelMedium.copy(color = theme.textSecondary))
+            RotationPreview("Next", "22:30", theme.tertiary)
+        }
+
+        Spacer(modifier = Modifier.height(22.dp))
+        Text("Your day", style = MaterialTheme.typography.titleSmall.copy(color = theme.textPrimary, fontWeight = FontWeight.Medium))
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            listOf("Morning" to "07:00", "Focus" to "09:00", "Evening" to "18:00", "Night" to "22:30").forEach { (label, time) ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.size(10.dp).background(if (label == "Night") theme.primary else theme.surfaceVariant, RoundedCornerShape(50)))
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(label, style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary))
+                    Text(time, style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary.copy(alpha = 0.65f)))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         if (uiState.schedules.isNotEmpty()) {
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(uiState.schedules, key = { it.id }) { schedule ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, if (schedule.isEnabled) theme.borderGlow.copy(alpha = 0.4f) else Color.Transparent, RoundedCornerShape(12.dp)),
-                        colors = CardDefaults.cardColors(containerColor = theme.surfaceVariant),
+                        .border(1.dp, theme.borderGlow.copy(alpha = 0.12f), RoundedCornerShape(12.dp)),
+                        colors = CardDefaults.cardColors(containerColor = theme.surface),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
