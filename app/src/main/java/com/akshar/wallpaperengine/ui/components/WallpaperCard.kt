@@ -49,26 +49,25 @@ fun WallpaperCard(
     val theme = LocalThemeColors.current
     val shape = RoundedCornerShape(14.dp)
 
-    Card(
+    Column(
         modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(9f / 16f)
-            .clip(shape)
-            .border(
-                width = if (isSelected) 2.dp else 1.dp,
-                color = if (isSelected) theme.primary else Color.White.copy(alpha = 0.08f),
-                shape = shape
-            )
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick
             )
             .testTag("wallpaper_card_${wallpaper.id}"),
-        colors = CardDefaults.cardColors(containerColor = theme.cardBackground),
-        shape = shape,
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(3f / 4f)
+                .clip(shape)
+                .border(
+                    width = if (isSelected) 2.dp else 0.dp,
+                    color = theme.primary,
+                    shape = shape
+                )
+        ) {
             if (wallpaper.isSample || wallpaper.uri.startsWith("sample_")) {
                 ProceduralWallpaperPreview(
                     sampleKey = wallpaper.uri,
@@ -87,37 +86,6 @@ fun WallpaperCard(
                 )
             }
 
-            // Preserve the artwork while keeping the title legible on every wallpaper.
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(76.dp)
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.88f))
-                        )
-                    )
-            )
-
-            // Title
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(10.dp)
-            ) {
-                Text(
-                    text = wallpaper.title,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            // Favorite Button Top-Right
             if (wallpaper.isFavorite) {
                 Icon(
                     imageVector = Icons.Filled.Favorite,
@@ -142,6 +110,25 @@ fun WallpaperCard(
                         .size(20.dp)
                 )
             }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = wallpaper.title,
+            style = MaterialTheme.typography.labelMedium.copy(
+                fontWeight = FontWeight.Medium,
+                color = theme.textPrimary
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        wallpaper.style?.let { style ->
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = style,
+                style = MaterialTheme.typography.labelSmall.copy(color = theme.textSecondary),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

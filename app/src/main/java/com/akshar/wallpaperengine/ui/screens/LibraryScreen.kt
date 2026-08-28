@@ -80,13 +80,14 @@ fun LibraryScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
+            .background(theme.background)
+            .padding(horizontal = 24.dp)
     ) {
         // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
+                .padding(top = 24.dp, bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -102,11 +103,11 @@ fun LibraryScreen(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(onClick = { showFilterSheet = true }) {
+                LibraryActionButton(onClick = { showFilterSheet = true }) {
                     Icon(Icons.Filled.FilterList, contentDescription = "Filter", tint = theme.textSecondary)
                 }
 
-                IconButton(
+                LibraryActionButton(
                     onClick = { showImportSheet = true },
                     modifier = Modifier.testTag("import_wallpaper_button")
                 ) {
@@ -129,27 +130,27 @@ fun LibraryScreen(
                 }
             },
             singleLine = true,
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = theme.primary,
-                unfocusedBorderColor = theme.borderGlow.copy(alpha = 0.3f),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.10f),
                 focusedTextColor = theme.textPrimary,
                 unfocusedTextColor = theme.textPrimary,
-                focusedContainerColor = theme.surfaceVariant,
-                unfocusedContainerColor = theme.surfaceVariant
+                focusedContainerColor = theme.surface,
+                unfocusedContainerColor = theme.surface
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 54.dp)
-                .padding(bottom = 12.dp)
+                .heightIn(min = 52.dp)
+                .padding(bottom = 16.dp)
         )
 
         // Daily discovery controls stay in one rail; detailed sorting lives in the filter sheet.
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 20.dp)
         ) {
             item {
                 val isAll = !uiState.filterOptions.favoritesOnly &&
@@ -159,19 +160,20 @@ fun LibraryScreen(
                 FilterChip(
                     selected = isAll,
                     onClick = { viewModel.clearAllFilters() },
-                    label = { Text("All wallpapers") },
+                    label = { Text("All") },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
-                        selectedLabelColor = theme.primary,
-                        containerColor = Color.Transparent,
+                        selectedContainerColor = theme.primary,
+                        selectedLabelColor = theme.onPrimary,
+                        containerColor = theme.surface,
                         labelColor = theme.textSecondary
                     ),
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = isAll,
-                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
-                        selectedBorderColor = theme.primary
-                    )
+                        borderColor = Color.White.copy(alpha = 0.10f),
+                        selectedBorderColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(10.dp)
                 )
             }
             item {
@@ -185,21 +187,22 @@ fun LibraryScreen(
                             imageVector = if (isFav) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
-                            tint = if (isFav) theme.primary else theme.textSecondary
+                            tint = if (isFav) theme.onPrimary else theme.textSecondary
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
-                        selectedLabelColor = theme.primary,
-                        containerColor = Color.Transparent,
+                        selectedContainerColor = theme.primary,
+                        selectedLabelColor = theme.onPrimary,
+                        containerColor = theme.surface,
                         labelColor = theme.textSecondary
                     ),
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = isFav,
-                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
-                        selectedBorderColor = theme.primary
-                    )
+                        borderColor = Color.White.copy(alpha = 0.10f),
+                        selectedBorderColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(10.dp)
                 )
             }
             item {
@@ -207,27 +210,49 @@ fun LibraryScreen(
                 FilterChip(
                     selected = isDark,
                     onClick = { viewModel.toggleDarkOnly() },
-                    label = { Text("Dark / OLED") },
+                    label = { Text("OLED") },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Filled.DarkMode,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
-                            tint = if (isDark) theme.primary else theme.textSecondary
+                            tint = if (isDark) theme.onPrimary else theme.textSecondary
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = theme.primary.copy(alpha = 0.2f),
-                        selectedLabelColor = theme.primary,
-                        containerColor = Color.Transparent,
+                        selectedContainerColor = theme.primary,
+                        selectedLabelColor = theme.onPrimary,
+                        containerColor = theme.surface,
                         labelColor = theme.textSecondary
                     ),
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = isDark,
-                        borderColor = theme.borderGlow.copy(alpha = 0.2f),
-                        selectedBorderColor = theme.primary
-                    )
+                        borderColor = Color.White.copy(alpha = 0.10f),
+                        selectedBorderColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                )
+            }
+            item {
+                val isPortrait = uiState.filterOptions.orientation == OrientationFilter.PORTRAIT
+                FilterChip(
+                    selected = isPortrait,
+                    onClick = { viewModel.updateOrientation(if (isPortrait) OrientationFilter.ALL else OrientationFilter.PORTRAIT) },
+                    label = { Text("Portrait") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = theme.primary,
+                        selectedLabelColor = theme.onPrimary,
+                        containerColor = theme.surface,
+                        labelColor = theme.textSecondary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isPortrait,
+                        borderColor = Color.White.copy(alpha = 0.10f),
+                        selectedBorderColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(10.dp)
                 )
             }
         }
@@ -238,14 +263,14 @@ fun LibraryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp)
-                    .background(theme.surfaceVariant, RoundedCornerShape(8.dp))
-                    .border(1.dp, theme.borderGlow.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                    .background(theme.surfaceVariant, RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(12.dp))
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "${uiState.selectedWallpaperIds.size} SELECTED",
+                    text = "${uiState.selectedWallpaperIds.size} selected",
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = theme.textPrimary)
                 )
 
@@ -267,8 +292,9 @@ fun LibraryScreen(
         if (uiState.wallpapers.isNotEmpty()) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(uiState.gridDensity),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(22.dp),
+                contentPadding = PaddingValues(bottom = 16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(uiState.wallpapers, key = { it.id }) { wallpaper ->
@@ -304,12 +330,13 @@ fun LibraryScreen(
     if (showImportSheet) {
         ModalBottomSheet(
             onDismissRequest = { showImportSheet = false },
-            containerColor = theme.surface
+            containerColor = theme.surface,
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
             ) {
                 Text("Add wallpapers", style = MaterialTheme.typography.titleLarge.copy(color = theme.textPrimary, fontWeight = FontWeight.Medium))
                 Text("Import individual images or a complete folder.", style = MaterialTheme.typography.bodySmall.copy(color = theme.textSecondary))
@@ -560,5 +587,23 @@ fun LibraryScreen(
             containerColor = theme.surface,
             shape = RoundedCornerShape(12.dp)
         )
+    }
+}
+
+@Composable
+private fun LibraryActionButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val theme = LocalThemeColors.current
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .size(40.dp)
+            .background(theme.surface, RoundedCornerShape(12.dp))
+            .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(12.dp))
+    ) {
+        content()
     }
 }
