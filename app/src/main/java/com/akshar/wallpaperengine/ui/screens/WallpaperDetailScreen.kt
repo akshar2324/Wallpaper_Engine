@@ -65,8 +65,8 @@ fun WallpaperDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(440.dp)
-                .clip(RoundedCornerShape(20.dp))
+                .height(520.dp)
+                .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
         ) {
             if (wallpaper.isSample || wallpaper.uri.startsWith("sample_")) {
                 ProceduralWallpaperPreview(
